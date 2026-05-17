@@ -128,7 +128,7 @@
       {#each thread as message (message.id)}
         <div class:mine={message.sender === $user.username} class="message-bubble">
           <div class="message-author">{message.sender}</div>
-          <div>{message.body}</div>
+          <div class="message-body">{message.body}</div>
         </div>
       {:else}
         <div class="empty-thread">No messages yet. Start the conversation.</div>
