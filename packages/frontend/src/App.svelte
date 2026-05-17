@@ -3,6 +3,8 @@
   import { Router, Link, navigate } from "./router/index.js";
   import { user, logout, restoreSession } from "./lib/stores.js";
   import Feed from "./pages/Feed.svelte";
+  import Messages from "./pages/Messages.svelte";
+  import Conversation from "./pages/Conversation.svelte";
   import PostDetail from "./pages/PostDetail.svelte";
   import Profile from "./pages/Profile.svelte";
   import NewPost from "./pages/NewPost.svelte";
@@ -17,6 +19,8 @@
 
 <Router routes={{
   "/": Feed,
+  "/messages": Messages,
+  "/messages/:username": Conversation,
   "/posts/:id": PostDetail,
   "/profile/:address": Profile,
   "/new": NewPost,
@@ -31,6 +35,9 @@
       <nav class="header-nav">
         <Link href="/">Feed</Link>
         <Link href="/new">New Post</Link>
+        {#if $user}
+          <Link href="/messages">Messages</Link>
+        {/if}
       </nav>
       <div class="header-right">
         {#if $user}

@@ -1,9 +1,9 @@
 import { Hono } from "hono";
 import { sign } from "hono/jwt";
 import { db } from "../db";
-import { authMiddleware } from "../middleware/auth";
+import { authMiddleware, type AuthEnv } from "../middleware/auth";
 
-const auth = new Hono();
+const auth = new Hono<AuthEnv>();
 
 auth.post("/register", async (c) => {
   const { username, password } = await c.req.json();

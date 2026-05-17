@@ -1,4 +1,5 @@
 <script>
+  import Link from "../router/Link.svelte";
   import { user } from "../lib/stores.js";
 
   let { params } = $props();
@@ -26,6 +27,8 @@
       {/if}
       {#if isOwnProfile}
         <button class="btn-secondary" style="margin-top:8px">Edit Profile</button>
+      {:else}
+        <Link href="/messages/{username}" class="btn-secondary" style="margin-top:8px">Message</Link>
       {/if}
     </div>
   </div>

@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import { db } from "../db";
-import { authMiddleware } from "../middleware/auth";
+import { authMiddleware, type AuthEnv } from "../middleware/auth";
 
-const posts = new Hono();
+const posts = new Hono<AuthEnv>();
 
 posts.get("/", async (c) => {
   const rows = await db`

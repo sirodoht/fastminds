@@ -25,5 +25,21 @@ await db`
   );
 `;
 
-console.log("Migration complete: users and posts tables ready");
+await db`
+  CREATE TABLE IF NOT EXISTS direct_messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sender_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    recipient_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    body TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT direct_messages_not_to_self CHECK (sender_id <> recipient_id)
+  );
+`;
+
+await db`
+  CREATE INDEX IF NOT EXISTS direct_messages_participants_created_at_idx
+  ON direct_messages (sender_id, recipient_id, created_at DESC);
+`;
+
+console.log("Migration complete: users, posts, and direct_messages tables ready");
 process.exit(0);
