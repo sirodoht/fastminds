@@ -33,7 +33,7 @@
 
     <div class="form-group">
       <label for="password">Password</label>
-      <input id="password" type="password" bind:value={password} placeholder="your password" required minlength={6} />
+      <input id="password" type="password" bind:value={password} placeholder="your password" required />
     </div>
 
     {#if error}

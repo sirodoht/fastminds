@@ -14,10 +14,6 @@ auth.post("/register", async (c) => {
   if (username.length < 3) {
     return c.json({ error: "Username must be at least 3 characters" }, 400);
   }
-  if (password.length < 6) {
-    return c.json({ error: "Password must be at least 6 characters" }, 400);
-  }
-
   const existing = await db`SELECT id FROM users WHERE username = ${username}`;
   if (existing.length > 0) {
     return c.json({ error: "Username already taken" }, 409);
