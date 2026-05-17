@@ -1,8 +1,14 @@
 <script>
+  import { onMount } from "svelte";
   import { navigate } from "../router/index.js";
   import { api } from "../lib/api.js";
+  import { user } from "../lib/stores.js";
 
   let { params } = $props();
+
+  onMount(() => {
+    if (!$user) navigate("/login");
+  });
 
   let title = $state("");
   let body = $state("");
