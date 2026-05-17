@@ -3,6 +3,7 @@
   import { Router, Link, navigate } from "./router/index.js";
   import { user, logout, restoreSession } from "./lib/stores.js";
   import Feed from "./pages/Feed.svelte";
+  import PostDetail from "./pages/PostDetail.svelte";
   import Profile from "./pages/Profile.svelte";
   import NewPost from "./pages/NewPost.svelte";
   import Login from "./pages/Login.svelte";
@@ -16,6 +17,7 @@
 
 <Router routes={{
   "/": Feed,
+  "/posts/:id": PostDetail,
   "/profile/:address": Profile,
   "/new": NewPost,
   "/login": Login,

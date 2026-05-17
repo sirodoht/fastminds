@@ -57,7 +57,7 @@
     </div>
     <div class="post-main">
       <div class="post-title">
-        {post.title}
+        <Link href="/posts/{post.id}">{post.title}</Link>
       </div>
       <div class="post-meta">
         <Link href="/profile/{post.author}">{post.author}</Link>
