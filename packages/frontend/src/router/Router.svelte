@@ -18,10 +18,10 @@
       if (match) {
         const params = {}
         keys.forEach((key, i) => params[key] = decodeURIComponent(match[i + 1]))
-        return { component, params }
+        return { component, params, key: currentPath }
       }
     }
-    if (fallback) return { component: fallback, params: {} }
+    if (fallback) return { component: fallback, params: {}, key: currentPath }
     return null
   })
 
@@ -40,12 +40,4 @@
   })
 </script>
 
-{@render children()}
-
-{#if matched}
-  {#each [matched.component] as Component}
-    <Component params={matched.params} />
-  {/each}
-{:else}
-  <p>404 — page not found</p>
-{/if}
+{@render children(matched)}

@@ -1,6 +1,11 @@
 <script>
-  let { params } = $props()
+  import Link from "../router/Link.svelte";
+
+  let { params } = $props();
 </script>
 
-<h1>404</h1>
-<p>Page not found.</p>
+<div class="not-found">
+  <h1>404</h1>
+  <p>This page doesn't exist.</p>
+  <Link href="/" class="btn-primary">Go to Feed</Link>
+</div>

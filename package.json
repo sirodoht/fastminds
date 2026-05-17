@@ -7,7 +7,8 @@
     "dev:api": "bun --hot src/index.ts",
     "dev:frontend": "cd packages/frontend && bun run dev",
     "dev": "concurrently \"bun dev:api\" \"bun dev:frontend\"",
-    "build:frontend": "cd packages/frontend && bun run build"
+    "build:frontend": "cd packages/frontend && bun run build",
+    "migrate": "bun run src/migrate.ts"
   },
   "dependencies": {
     "concurrently": "^9",
