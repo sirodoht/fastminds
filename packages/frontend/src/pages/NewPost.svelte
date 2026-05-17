@@ -1,5 +1,6 @@
 <script>
   import { navigate } from "../router/index.js";
+  import { api } from "../lib/api.js";
 
   let { params } = $props();
 
@@ -13,10 +14,17 @@
     if (!title.trim()) { error = "Title is required."; return; }
     error = "";
     loading = true;
-    // TODO: POST /api/posts
-    await new Promise(r => setTimeout(r, 500));
-    loading = false;
-    navigate("/");
+    try {
+      await api("/api/posts", {
+        method: "POST",
+        body: JSON.stringify({ title: title.trim(), body: body.trim() }),
+      });
+      navigate("/");
+    } catch (err) {
+      error = err.message;
+    } finally {
+      loading = false;
+    }
   }
 </script>
 

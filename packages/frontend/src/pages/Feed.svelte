@@ -1,9 +1,18 @@
 <script>
+  import { onMount } from "svelte";
   import Link from "../router/Link.svelte";
+  import { api } from "../lib/api.js";
 
   let { params } = $props();
 
   let posts = $state([]);
+
+  onMount(async () => {
+    try {
+      const data = await api("/api/posts");
+      posts = data.posts;
+    } catch {}
+  });
 
   function toggleUpvote(post) {
     if (post.upvoted) {
@@ -51,11 +60,9 @@
         {post.title}
       </div>
       <div class="post-meta">
-        submitted <span>{post.time}</span>
-        <span class="separator">by</span>
-        <Link href="/profile/{post.author}">{post.authorDisplay}</Link>
+        <Link href="/profile/{post.author}">{post.author}</Link>
         <span class="separator">|</span>
-        <span>{post.comments} comment{post.comments !== 1 ? 's' : ''}</span>
+        <span>{post.score} point{post.score !== 1 ? 's' : ''}</span>
       </div>
     </div>
   </article>
