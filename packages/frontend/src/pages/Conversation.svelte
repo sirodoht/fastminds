@@ -16,11 +16,11 @@
   let socket;
   let threadElement = $state();
 
-  async function scrollToBottom() {
+  async function scrollToBottom(behavior = "smooth") {
     await tick();
     threadElement?.scrollTo({
       top: threadElement.scrollHeight,
-      behavior: "smooth",
+      behavior,
     });
   }
 
@@ -77,12 +77,15 @@
     try {
       const data = await api(`/api/messages/${recipient}`);
       thread = data.messages;
-      await scrollToBottom();
       connectSocket();
     } catch (err) {
       error = err.message;
     } finally {
       loading = false;
+    }
+
+    if (!error) {
+      await scrollToBottom("auto");
     }
   });
 
