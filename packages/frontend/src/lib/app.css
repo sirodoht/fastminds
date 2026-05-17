@@ -114,6 +114,24 @@ a:visited {
   text-decoration: none;
 }
 
+.notification-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.notification-badge {
+  min-width: 16px;
+  height: 16px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--white);
+  color: var(--orange);
+  font-size: .7rem;
+  line-height: 16px;
+  text-align: center;
+}
+
 .header-right {
   margin-left: auto;
   display: flex;
@@ -681,6 +699,39 @@ a:visited {
 
 .socket-status.connected {
   color: var(--green);
+}
+
+/* ──────── Notifications ──────── */
+
+.notification-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.notification-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+.notification-row:last-child {
+  border-bottom: none;
+}
+
+.notification-row:hover {
+  background: var(--bg-card);
+  text-decoration: none;
+}
+
+.notification-row.unread {
+  background: #fff7f3;
+}
+
+.notification-row small {
+  color: var(--text-meta);
 }
 
 

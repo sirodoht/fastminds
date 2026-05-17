@@ -41,5 +41,29 @@ await db`
   ON direct_messages (sender_id, recipient_id, created_at DESC);
 `;
 
-console.log("Migration complete: users, posts, and direct_messages tables ready");
+await db`
+  CREATE TABLE IF NOT EXISTS notifications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    actor_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    type TEXT NOT NULL,
+    body TEXT NOT NULL,
+    href TEXT NOT NULL,
+    read_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  );
+`;
+
+await db`
+  CREATE INDEX IF NOT EXISTS notifications_user_created_at_idx
+  ON notifications (user_id, created_at DESC);
+`;
+
+await db`
+  CREATE INDEX IF NOT EXISTS notifications_user_unread_idx
+  ON notifications (user_id)
+  WHERE read_at IS NULL;
+`;
+
+console.log("Migration complete: users, posts, direct_messages, and notifications tables ready");
 process.exit(0);

@@ -3,6 +3,7 @@ import { cors } from "hono/cors";
 import { serveStatic } from "hono/bun";
 import { authRoutes } from "./routes/auth";
 import { messagesRoutes } from "./routes/messages";
+import { notificationsRoutes } from "./routes/notifications";
 import { postsRoutes } from "./routes/posts";
 import {
   messageWebSocketHandler,
@@ -16,6 +17,7 @@ app.use("/api/*", cors({ origin: "http://localhost:5173", credentials: true }));
 app.get("/api/health", (c) => c.json({ ok: true }));
 app.route("/api/auth", authRoutes);
 app.route("/api/messages", messagesRoutes);
+app.route("/api/notifications", notificationsRoutes);
 app.route("/api/posts", postsRoutes);
 app.use("/*", serveStatic({ root: "./packages/frontend/dist" }));
 app.get("*", async (c) => {

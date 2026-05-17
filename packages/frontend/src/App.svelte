@@ -1,9 +1,16 @@
 <script>
   import { onMount } from "svelte";
   import { Router, Link, navigate } from "./router/index.js";
-  import { user, logout, restoreSession } from "./lib/stores.js";
+  import {
+    notificationUnreadCount,
+    refreshNotificationUnreadCount,
+    user,
+    logout,
+    restoreSession,
+  } from "./lib/stores.js";
   import Feed from "./pages/Feed.svelte";
   import Messages from "./pages/Messages.svelte";
+  import Notifications from "./pages/Notifications.svelte";
   import Conversation from "./pages/Conversation.svelte";
   import PostDetail from "./pages/PostDetail.svelte";
   import Profile from "./pages/Profile.svelte";
@@ -15,12 +22,40 @@
   onMount(async () => {
     await restoreSession();
   });
+
+  let notificationSocket;
+
+  function connectNotificationSocket() {
+    const token = localStorage.getItem("token");
+    if (!token || notificationSocket) return;
+
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    notificationSocket = new WebSocket(`${protocol}//${window.location.host}/ws/messages?token=${encodeURIComponent(token)}`);
+
+    notificationSocket.addEventListener("message", (event) => {
+      const payload = JSON.parse(event.data);
+      if (payload.type !== "notification:new") return;
+
+      notificationUnreadCount.update((count) => count + 1);
+    });
+  }
+
+  $effect(() => {
+    if ($user) {
+      refreshNotificationUnreadCount();
+      connectNotificationSocket();
+    } else {
+      notificationSocket?.close();
+      notificationSocket = null;
+    }
+  });
 </script>
 
 <Router routes={{
   "/": Feed,
   "/messages": Messages,
   "/messages/:username": Conversation,
+  "/notifications": Notifications,
   "/posts/:id": PostDetail,
   "/profile/:address": Profile,
   "/new": NewPost,
@@ -37,6 +72,12 @@
         <Link href="/new">New Post</Link>
         {#if $user}
           <Link href="/messages">Messages</Link>
+          <Link href="/notifications" class="notification-link">
+            Notifications
+            {#if $notificationUnreadCount > 0}
+              <span class="notification-badge">{$notificationUnreadCount}</span>
+            {/if}
+          </Link>
         {/if}
       </nav>
       <div class="header-right">

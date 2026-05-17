@@ -4,6 +4,7 @@ import { api } from "./api.js";
 export const currentRoute = writable({ path: "/", params: {} });
 export const user = writable(null);
 export const token = writable(localStorage.getItem("token") || null);
+export const notificationUnreadCount = writable(0);
 
 token.subscribe((value) => {
   if (value) localStorage.setItem("token", value);
@@ -13,6 +14,7 @@ token.subscribe((value) => {
 window.addEventListener("auth:expired", () => {
   user.set(null);
   token.set(null);
+  notificationUnreadCount.set(0);
 });
 
 export async function login(username, password) {
@@ -38,6 +40,7 @@ export async function register(username, password) {
 export function logout() {
   token.set(null);
   user.set(null);
+  notificationUnreadCount.set(0);
 }
 
 export async function restoreSession() {
@@ -50,4 +53,15 @@ export async function restoreSession() {
     token.set(null);
     user.set(null);
   }
+}
+
+export async function refreshNotificationUnreadCount() {
+  if (!get(token)) {
+    notificationUnreadCount.set(0);
+    return 0;
+  }
+
+  const data = await api("/api/notifications/unread-count");
+  notificationUnreadCount.set(data.unreadCount);
+  return data.unreadCount;
 }

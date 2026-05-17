@@ -19,6 +19,18 @@ type MessageEvent =
       };
     }
   | {
+      type: "notification:new";
+      notification: {
+        id: string;
+        type: string;
+        body: string;
+        href: string;
+        read_at: string | null;
+        created_at: string;
+        actor: string | null;
+      };
+    }
+  | {
       type: "error";
       error: string;
     };
@@ -158,12 +170,32 @@ export const messageWebSocketHandler = {
       RETURNING id, body, created_at
     `;
 
+    const [notification] = await db`
+      INSERT INTO notifications (user_id, actor_id, type, body, href)
+      VALUES (
+        ${recipient.id},
+        ${ws.data.userId},
+        ${"direct_message"},
+        ${`${ws.data.username} sent you a message`},
+        ${`/messages/${ws.data.username}`}
+      )
+      RETURNING id, type, body, href, read_at, created_at
+    `;
+
     sendToUsers([ws.data.userId, recipient.id], {
       type: "message:new",
       message: {
         ...message,
         sender: ws.data.username,
         recipient: recipient.username,
+      },
+    });
+
+    sendToUsers([recipient.id], {
+      type: "notification:new",
+      notification: {
+        ...notification,
+        actor: ws.data.username,
       },
     });
   },
