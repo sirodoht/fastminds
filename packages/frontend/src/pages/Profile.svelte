@@ -7,12 +7,6 @@
   let username = $derived(params.address);
   let isOwnProfile = $derived($user?.username === username);
 
-  let profileUser = $state({
-    bio: "Curious mind. Lover of paradoxes and late-night debates.",
-    joined: "May 2026",
-    postKarma: 42,
-    commentKarma: 87,
-  });
 </script>
 
 <div class="profile-card">
@@ -22,30 +16,11 @@
     </div>
     <div class="profile-info">
       <h1>u/{username}</h1>
-      {#if profileUser.bio}
-        <div class="bio">{profileUser.bio}</div>
-      {/if}
-      {#if isOwnProfile}
-        <button class="btn-secondary" style="margin-top:8px">Edit Profile</button>
-      {:else}
+      {#if !isOwnProfile}
         <Link href="/messages/{username}" class="btn-secondary" style="margin-top:8px">Message</Link>
       {/if}
     </div>
   </div>
-  <dl class="profile-stats">
-    <div>
-      <dt>Post Karma</dt>
-      <dd>{profileUser.postKarma}</dd>
-    </div>
-    <div>
-      <dt>Comment Karma</dt>
-      <dd>{profileUser.commentKarma}</dd>
-    </div>
-    <div>
-      <dt>Joined</dt>
-      <dd>{profileUser.joined}</dd>
-    </div>
-  </dl>
 </div>
 
 <div class="panel" style="margin-top:12px">
