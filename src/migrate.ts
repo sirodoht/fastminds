@@ -12,6 +12,8 @@ await db`
   );
 `;
 
+await db`ALTER TABLE users DROP COLUMN IF EXISTS display_name;`;
+
 await db`
   CREATE TABLE IF NOT EXISTS posts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
