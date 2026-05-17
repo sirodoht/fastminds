@@ -104,6 +104,13 @@
     draft = "";
     error = "";
   }
+
+  function handleComposerKeydown(e) {
+    if (e.key !== "Enter" || e.shiftKey) return;
+
+    e.preventDefault();
+    sendMessage(e);
+  }
 </script>
 
 <div class="panel conversation-panel">
@@ -131,6 +138,7 @@
     <form class="message-composer" onsubmit={sendMessage}>
       <textarea
         bind:value={draft}
+        onkeydown={handleComposerKeydown}
         placeholder="Write a private message…"
         rows="3"
       ></textarea>
