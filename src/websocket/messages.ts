@@ -1,5 +1,6 @@
 import { verify } from "hono/jwt";
 import { db, generateUUID } from "../db";
+import { sendEmail } from "../lib/email";
 import type { Server, ServerWebSocket } from "bun";
 
 export type MessageSocketData = {
@@ -209,6 +210,21 @@ export const messageWebSocketHandler = {
           actor: ws.data.username,
         },
       });
+
+      // Send email notification to the other user
+      const [recipient] = await db`
+        SELECT email, email_verified, email_new_message FROM users WHERE id = ${otherUserId}
+      `;
+      if (recipient?.email && recipient?.email_verified && recipient?.email_new_message) {
+        const appUrl = process.env.APP_URL || process.env.PUBLIC_URL || "http://localhost:3000";
+        const conversationUrl = `${appUrl}/conversations/${conversationId}`;
+        await sendEmail({
+          to: recipient.email,
+          subject: "New message on fastminds",
+          text: `You have a new message in a conversation.\n\nView it here: ${conversationUrl}`,
+          html: `<p>You have a new message in a conversation.</p><p><a href="${conversationUrl}">View conversation</a></p>`,
+        });
+      }
 
       return;
     }

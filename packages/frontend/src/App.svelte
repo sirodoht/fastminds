@@ -21,6 +21,7 @@
   import RegisterSuccess from "./pages/RegisterSuccess.svelte";
   import VerifyEmail from "./pages/VerifyEmail.svelte";
   import Settings from "./pages/Settings.svelte";
+  import Notifications from "./pages/Notifications.svelte";
   import AdminModeration from "./pages/AdminModeration.svelte";
   import AdminConversations from "./pages/AdminConversations.svelte";
   import AdminConversationDetail from "./pages/AdminConversationDetail.svelte";
@@ -107,6 +108,7 @@
     "/register/success": RegisterSuccess,
     "/verify-email": VerifyEmail,
     "/settings": Settings,
+    "/notifications": Notifications,
     "/admin/moderation": AdminModeration,
     "/admin/conversations": AdminConversations,
     "/admin/conversations/:id": AdminConversationDetail,
@@ -140,6 +142,7 @@
             <div class="dropdown-menu" role="menu" tabindex="-1" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()}>
               <Link href="/u/{$user.username}" onclick={() => { dropdownOpen = false; }}>Profile</Link>
               <Link href="/bookmarks" onclick={() => { dropdownOpen = false; }}>Bookmarks</Link>
+              <Link href="/notifications" onclick={() => { dropdownOpen = false; }}>Notifications</Link>
               <Link href="/settings" onclick={() => { dropdownOpen = false; }}>Settings</Link>
               {#if $user.isAdmin}
                 <Link href="/admin/moderation" onclick={() => { dropdownOpen = false; }}>Moderation</Link>

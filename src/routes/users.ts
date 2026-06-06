@@ -28,6 +28,67 @@ const users = new Hono<AuthEnv>();
 
 users.use("*", authMiddleware);
 
+// GET /api/users/me/notifications — current user's notification preferences
+users.get("/me/notifications", async (c) => {
+  const userId = c.get("userId");
+
+  const [user] = await db`
+    SELECT email_notifications, email_new_message, email_new_post FROM users WHERE id = ${userId}
+  `;
+  if (!user) {
+    return c.json({ error: "User not found" }, 404);
+  }
+
+  return c.json({
+    emailNewConversation: user.email_notifications,
+    emailNewMessage: user.email_new_message,
+    emailNewPost: user.email_new_post,
+  });
+});
+
+// PUT /api/users/me/notifications — update notification preferences
+users.put("/me/notifications", async (c) => {
+  const { emailNewConversation, emailNewMessage, emailNewPost } = await c.req.json();
+  const userId = c.get("userId");
+
+  const updates: string[] = [];
+  const params: (boolean | string)[] = [];
+
+  if (typeof emailNewConversation === "boolean") {
+    updates.push("email_notifications = ?");
+    params.push(emailNewConversation);
+  }
+  if (typeof emailNewMessage === "boolean") {
+    updates.push("email_new_message = ?");
+    params.push(emailNewMessage);
+  }
+  if (typeof emailNewPost === "boolean") {
+    updates.push("email_new_post = ?");
+    params.push(emailNewPost);
+  }
+
+  if (updates.length === 0) {
+    return c.json({ error: "No valid fields provided" }, 400);
+  }
+
+  params.push(userId);
+  const sql = `UPDATE users SET ${updates.join(", ")} WHERE id = ?`;
+  const stmt = db.sqlite.query(sql);
+  stmt.run(...params);
+  stmt.finalize();
+
+  const [updatedUser] = await db`
+    SELECT email_notifications, email_new_message, email_new_post FROM users WHERE id = ${userId}
+  `;
+
+  return c.json({
+    success: true,
+    emailNewConversation: updatedUser.email_notifications,
+    emailNewMessage: updatedUser.email_new_message,
+    emailNewPost: updatedUser.email_new_post,
+  });
+});
+
 // GET /api/users/:username — public profile by username
 users.get("/:username", async (c) => {
   const username = c.req.param("username");

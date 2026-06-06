@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { db, generateUUID } from "../db";
 import { authMiddleware, optionalAuthMiddleware, verifiedEmailMiddleware, type AuthEnv } from "../middleware/auth";
-import { sendAdminEmail, logAdminEvent } from "../lib/email";
+import { sendEmail, sendAdminEmail, logAdminEvent } from "../lib/email";
 import { validateUUID } from "../lib/validation";
 
 const posts = new Hono<AuthEnv>();
@@ -155,6 +155,22 @@ posts.post("/", authMiddleware, verifiedEmailMiddleware, async (c) => {
     html: emailHtml,
   });
   await logAdminEvent("post:create", emailText);
+
+  // Send email to users who opted in to new post notifications
+  const subscribers = await db`
+    SELECT email FROM users
+    WHERE email_verified = TRUE AND email_new_post = TRUE AND id <> ${userId}
+  `;
+  for (const subscriber of subscribers) {
+    if (subscriber.email) {
+      await sendEmail({
+        to: subscriber.email,
+        subject: `New post on fastminds: ${post.title}`,
+        text: emailText,
+        html: emailHtml,
+      });
+    }
+  }
 
   return c.json({ post }, 201);
 });

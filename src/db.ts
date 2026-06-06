@@ -16,6 +16,9 @@ const BOOLEAN_FIELDS = new Set([
   "recipient_sent",
   "hidden",
   "revealed",
+  "email_notifications",
+  "email_new_message",
+  "email_new_post",
 ]);
 
 function normalizeRow(row: any): any {

@@ -99,9 +99,9 @@ conversations.post("/from-post/:id", verifiedEmailMiddleware, async (c) => {
 
   // Send email notification to post author
   const [postAuthor] = await db`
-    SELECT email, email_verified FROM users WHERE id = ${post.author_id}
+    SELECT email, email_verified, email_notifications FROM users WHERE id = ${post.author_id}
   `;
-  if (postAuthor?.email && postAuthor?.email_verified) {
+  if (postAuthor?.email && postAuthor?.email_verified && postAuthor?.email_notifications) {
     const appUrl = process.env.APP_URL || process.env.PUBLIC_URL || "http://localhost:3000";
     const conversationUrl = `${appUrl}/conversations/${conversation.id}`;
     await sendEmail({
@@ -404,9 +404,9 @@ ${messages.map((m: any) => `<li><b>${m.sender_username}</b> (${new Date(m.create
 
   // Send email notification to the other user
   const [recipient] = await db`
-    SELECT email, email_verified FROM users WHERE id = ${otherUserId}
+    SELECT email, email_verified, email_new_message FROM users WHERE id = ${otherUserId}
   `;
-  if (recipient?.email && recipient?.email_verified) {
+  if (recipient?.email && recipient?.email_verified && recipient?.email_new_message) {
     const appUrl = process.env.APP_URL || process.env.PUBLIC_URL || "http://localhost:3000";
     const conversationUrl = `${appUrl}/conversations/${id}`;
     await sendEmail({

@@ -11,9 +11,30 @@ await db`
     email_verification_token TEXT,
     stripe_checkout_session_id TEXT UNIQUE,
     payment_verified INTEGER NOT NULL DEFAULT 0,
-    is_admin INTEGER NOT NULL DEFAULT 0
+    is_admin INTEGER NOT NULL DEFAULT 0,
+    email_notifications INTEGER NOT NULL DEFAULT 1,
+    email_new_message INTEGER NOT NULL DEFAULT 1,
+    email_new_post INTEGER NOT NULL DEFAULT 1
   );
 `;
+
+try {
+  db.sqlite.exec(`
+    ALTER TABLE users ADD COLUMN email_notifications INTEGER NOT NULL DEFAULT 1;
+  `);
+} catch {}
+
+try {
+  db.sqlite.exec(`
+    ALTER TABLE users ADD COLUMN email_new_message INTEGER NOT NULL DEFAULT 1;
+  `);
+} catch {}
+
+try {
+  db.sqlite.exec(`
+    ALTER TABLE users ADD COLUMN email_new_post INTEGER NOT NULL DEFAULT 1;
+  `);
+} catch {}
 
 await db`
   CREATE TABLE IF NOT EXISTS pending_registrations (

@@ -37,8 +37,15 @@ async function sendViaPostmark({ to, subject, text, html }: SendEmailOptions) {
 }
 
 export async function sendEmail(opts: SendEmailOptions) {
+  const base = process.env.PUBLIC_URL || "http://localhost:3000";
+  const footerText = `\n\n---\nManage your email notifications: ${base}/notifications`;
+  const footerHtml = `<hr style="border:none;border-top:1px solid #ddd;margin:1.5rem 0 0.5rem;"><p style="font-size:0.85rem;color:#666;"><a href="${base}/notifications">Manage your email notifications</a></p>`;
+
+  const text = opts.text + footerText;
+  const html = opts.html ? opts.html + footerHtml : undefined;
+
   // 1. Postmark API
-  if (await sendViaPostmark(opts)) return;
+  if (await sendViaPostmark({ ...opts, text, html })) return;
 
   // 2. Generic webhook (e.g. SendGrid, Resend HTTP API)
   const webhookUrl = process.env.EMAIL_WEBHOOK_URL;
@@ -46,7 +53,7 @@ export async function sendEmail(opts: SendEmailOptions) {
     const res = await fetch(webhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ to: opts.to, subject: opts.subject, text: opts.text, html: opts.html }),
+      body: JSON.stringify({ to: opts.to, subject: opts.subject, text, html }),
     });
     if (!res.ok) {
       throw new Error(`Email webhook failed: ${res.status} ${await res.text()}`);
@@ -61,7 +68,7 @@ export async function sendEmail(opts: SendEmailOptions) {
   console.log(`To:      ${opts.to}`);
   console.log(`Subject: ${opts.subject}`);
   console.log("-".repeat(60));
-  console.log(opts.text);
+  console.log(text);
   console.log("=".repeat(60));
 }
 
