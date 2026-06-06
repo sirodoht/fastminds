@@ -40,7 +40,7 @@ onMount(async () => {
     <div class="panel-body form-error">{error}</div>
   {:else if conversations.length === 0}
     <div class="panel-body" style="color:var(--text-muted)">
-      No conversations yet. Discover an interesting post and start one.
+      No conversations yet.
     </div>
   {:else}
     <div class="conversation-list">
