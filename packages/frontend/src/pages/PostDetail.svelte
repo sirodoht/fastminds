@@ -148,7 +148,7 @@ let canStartConversation = $derived($user && post && !post.archived_at && !isOwn
       {:else if isOwnPost}
         <p class="text-muted">This is your post.</p>
       {:else}
-        <p class="text-muted"><Link href="/login">Log in</Link> to start a conversation.</p>
+        <p class="text-muted"><Link href="/login">Log in</Link> to reply.</p>
       {/if}
     </div>
   </div>
