@@ -25,7 +25,7 @@ let feedbackSubmitting = $state(false);
 let feedbackError = $state("");
 let feedbackSaveStatus = $state("");
 let hasExistingFeedback = $state(false);
-let feedbackCollapsed = $state(false);
+let feedbackCollapsed = $state(true);
 
 let feedbackDebounceTimer = null;
 let feedbackInitialLoad = true;
@@ -261,12 +261,6 @@ $effect(() => {
       </Link>
     </div>
 
-    {#if conversation.postBody}
-      <div class="post-context">
-        <div class="post-context-body">{conversation.postBody}</div>
-      </div>
-    {/if}
-
     {#if !conversation.revealed}
       <div class="blind-banner">
         <p>Identities are hidden until 10 messages have been exchanged.</p>
@@ -368,7 +362,7 @@ $effect(() => {
     align-items: center;
   }
   .post-title {
-    font-weight: 600;
+    font-weight: 400;
   }
   .blind-banner {
     padding: 8px 12px;
@@ -380,17 +374,6 @@ $effect(() => {
   }
   .blind-banner p {
     margin: 0;
-  }
-  .post-context {
-    padding: 12px 16px;
-    background: var(--bg-secondary);
-    border-bottom: 1px solid var(--border);
-  }
-  .post-context-body {
-    font-size: 0.9rem;
-    color: var(--text-primary);
-    line-height: 1.5;
-    white-space: pre-wrap;
   }
   .message-thread {
     padding: 12px;
