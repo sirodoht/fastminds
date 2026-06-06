@@ -79,6 +79,7 @@ app.get("*", async (c) => {
   const tags: Record<string, string> = {
     "og:url": url,
     "og:type": "website",
+    "og:description": "Discover ideas first. Discover people second.",
   };
 
   // Dynamic meta tags for specific routes
@@ -91,7 +92,7 @@ app.get("*", async (c) => {
       if (post) {
         const excerpt = post.body ? post.body.slice(0, 200).replace(/\n/g, " ") : "";
         tags["og:title"] = post.title;
-        tags["og:description"] = excerpt || "Anonymous-to-pseudonymous conversations around ideas.";
+        tags["og:description"] = excerpt || "Discover ideas first. Discover people second.";
       }
     }
   } else if (path.startsWith("/u/")) {
@@ -101,8 +102,8 @@ app.get("*", async (c) => {
         SELECT username FROM users WHERE username = ${username}
       `;
       if (user) {
-        tags["og:title"] = `${user.username} on fastminds`;
-        tags["og:description"] = `View ${user.username}'s profile on fastminds.`;
+        tags["og:title"] = `${user.username}`;
+        tags["og:description"] = `Discover ideas first. Discover people second.`;
       }
     }
   } else if (path.startsWith("/conversations/")) {
@@ -115,8 +116,8 @@ app.get("*", async (c) => {
         WHERE c.id = ${id}
       `;
       if (conv) {
-        tags["og:title"] = `Conversation on fastminds`;
-        tags["og:description"] = conv.title ? `Conversation about: ${conv.title}` : "Anonymous-to-pseudonymous conversations around ideas.";
+        tags["og:title"] = `Conversation`;
+        tags["og:description"] = conv.title ? `Conversation about: ${conv.title}` : "Discover ideas first. Discover people second.";
       }
     }
   }
