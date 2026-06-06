@@ -1008,8 +1008,13 @@ a:visited {
 }
 
 @media (max-width: 720px) {
+  .layout {
+    flex-direction: column;
+  }
   .sidebar {
-    display: none;
+    display: block;
+    width: 100%;
+    margin-top: 8px;
   }
   .messages-sidebar {
     display: none;
