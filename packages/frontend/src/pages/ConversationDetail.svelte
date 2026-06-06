@@ -247,7 +247,6 @@ $effect(() => {
     {#if !conversation.revealed}
       <div class="blind-banner">
         <p>Identities are hidden until 10 messages have been exchanged.</p>
-        <p>{conversation.messageCount} / 10 messages</p>
       </div>
     {/if}
 
