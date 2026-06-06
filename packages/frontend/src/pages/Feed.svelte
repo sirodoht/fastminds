@@ -37,13 +37,6 @@
   }
 </script>
 
-<div class="tab-bar">
-  <button class="active">Hot</button>
-  <button>New</button>
-  <button>Top</button>
-  <button>Rising</button>
-</div>
-
 {#each posts as post (post.id)}
   <article class="post">
     <div class="post-vote">

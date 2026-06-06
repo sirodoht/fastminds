@@ -746,48 +746,6 @@ a:visited {
 
 
 
-/* ──────── Tab bar ──────── */
-
-.tab-bar {
-  display: flex;
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: 3px;
-  margin-bottom: 12px;
-  overflow: hidden;
-}
-
-.tab-bar a,
-.tab-bar button {
-  padding: 6px 14px;
-  font-size: .8rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  background: none;
-  border: none;
-  border-right: 1px solid var(--border);
-  cursor: pointer;
-  text-decoration: none;
-  transition: background .1s;
-}
-
-.tab-bar a:last-child,
-.tab-bar button:last-child {
-  border-right: none;
-}
-
-.tab-bar a:hover,
-.tab-bar button:hover {
-  background: var(--bg);
-  text-decoration: none;
-}
-
-.tab-bar a.active,
-.tab-bar button.active {
-  color: var(--orange);
-  background: var(--bg);
-}
-
 /* ──────── 404 ──────── */
 
 .not-found {
