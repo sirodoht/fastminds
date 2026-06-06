@@ -564,25 +564,6 @@ a:visited {
   color: var(--text);
 }
 
-.profile-stats {
-  display: flex;
-  gap: 24px;
-  padding: 12px 20px;
-  border-top: 1px solid var(--border);
-  font-size: .8rem;
-}
-
-.profile-stats dt {
-  color: var(--text-meta);
-  text-transform: uppercase;
-  font-size: .7rem;
-}
-
-.profile-stats dd {
-  font-weight: 600;
-  font-size: 1rem;
-}
-
 /* ──────── Messages ──────── */
 
 .conversation-list {

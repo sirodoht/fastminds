@@ -113,10 +113,6 @@
             <Link href="/register" class="btn-primary">Create Account</Link>
           {/if}
         </div>
-        <div class="sidebar-card">
-          <h3>Stats</h3>
-          <p>Join the conversation.</p>
-        </div>
       </aside>
     </div>
   {/snippet}
