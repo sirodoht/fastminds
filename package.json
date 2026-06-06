@@ -9,7 +9,8 @@
     "dev": "concurrently \"bun dev:api\" \"bun dev:frontend\"",
     "build:frontend": "cd packages/frontend && bun run build",
     "migrate": "bun run src/migrate.ts",
-    "seed": "bun run src/seed.ts"
+    "seed": "bun run src/seed.ts",
+    "test": "bun test"
   },
   "dependencies": {
     "concurrently": "^9",

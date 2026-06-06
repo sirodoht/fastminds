@@ -1,40 +1,13 @@
 <script>
-import { onDestroy, onMount } from "svelte";
+import { onMount } from "svelte";
 import { api } from "../lib/api.js";
 import { restoreSession, user } from "../lib/stores.js";
+import { navigate } from "../router/index.js";
 import Link from "../router/Link.svelte";
-
-let { currentPath } = $props();
 
 let conversations = $state([]);
 let loading = $state(true);
 let error = $state("");
-let socket;
-
-let activeId = $derived.by(() => {
-  const match = currentPath.match(/^\/conversations\/([^/]+)$/);
-  return match ? match[1] : null;
-});
-
-function connectSocket() {
-  const token = localStorage.getItem("token");
-  if (!token) return;
-
-  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-  socket = new WebSocket(`${protocol}//${window.location.host}/ws/messages?token=${encodeURIComponent(token)}`);
-
-  socket.addEventListener("message", (event) => {
-    const payload = JSON.parse(event.data);
-    if (payload.type !== "conversation:message:new") return;
-
-    const msg = payload.message;
-
-    // Refetch conversation list to update preview
-    api("/api/conversations").then((data) => {
-      conversations = data.conversations;
-    }).catch(() => {});
-  });
-}
 
 onMount(async () => {
   if (!$user && localStorage.getItem("token")) {
@@ -42,26 +15,22 @@ onMount(async () => {
   }
 
   if (!$user) {
+    navigate("/login");
     return;
   }
 
   try {
     const data = await api("/api/conversations");
     conversations = data.conversations;
-    connectSocket();
   } catch (err) {
     error = err.message;
   } finally {
     loading = false;
   }
 });
-
-onDestroy(() => {
-  socket?.close();
-});
 </script>
 
-<div class="messages-sidebar">
+<div class="panel">
   <div class="panel-header">Conversations</div>
 
   {#if loading}
@@ -70,26 +39,26 @@ onDestroy(() => {
     <div class="panel-body form-error">{error}</div>
   {:else if conversations.length === 0}
     <div class="panel-body" style="color:var(--text-muted)">
-      No conversations yet.
+      No conversations yet. Discover an interesting post and start one.
     </div>
   {:else}
     <div class="conversation-list">
       {#each conversations as conversation (conversation.id)}
         <Link
           href="/conversations/{conversation.id}"
-          class="conversation-row {conversation.id === activeId ? 'active' : ''}"
+          class="conversation-row"
         >
-          <div class="row-title">{conversation.postTitle}</div>
-          <div class="row-meta">
+          <div class="conversation-title">{conversation.postTitle}</div>
+          <div class="conversation-meta">
             {#if conversation.revealed}
               <span class="revealed-badge">Revealed</span>
             {:else}
               <span class="blind-badge">Blind</span>
             {/if}
-            <span class="message-count">{conversation.messageCount}</span>
+            <span>{conversation.messageCount} messages</span>
           </div>
           {#if conversation.lastBody}
-            <div class="row-preview">{conversation.lastBody}</div>
+            <div class="conversation-preview">{conversation.lastBody}</div>
           {/if}
         </Link>
       {/each}
@@ -105,61 +74,51 @@ onDestroy(() => {
   .conversation-row {
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    padding: 10px 14px;
+    gap: 4px;
+    padding: 12px 16px;
     border-bottom: 1px solid var(--border);
     text-decoration: none;
     color: inherit;
     transition: background 0.15s;
-    cursor: pointer;
   }
-  .conversation-row:hover,
-  .conversation-row.active {
+  .conversation-row:hover {
     background: var(--bg-secondary);
   }
-  .row-title {
+  .conversation-title {
     font-weight: 600;
-    font-size: 0.9rem;
     color: var(--text-primary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
-  .row-meta {
+  .conversation-meta {
     display: flex;
-    gap: 6px;
+    gap: 8px;
     align-items: center;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     color: var(--text-muted);
   }
   .blind-badge {
     display: inline-block;
-    padding: 1px 5px;
-    font-size: 0.65rem;
+    padding: 1px 6px;
+    font-size: 0.7rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     background: var(--accent);
     color: white;
-    border-radius: 3px;
+    border-radius: 4px;
   }
   .revealed-badge {
     display: inline-block;
-    padding: 1px 5px;
-    font-size: 0.65rem;
+    padding: 1px 6px;
+    font-size: 0.7rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     background: var(--bg-tertiary);
     color: var(--text-muted);
-    border-radius: 3px;
+    border-radius: 4px;
   }
-  .message-count::before {
-    content: "•";
-    margin-right: 4px;
-  }
-  .row-preview {
-    font-size: 0.8rem;
+  .conversation-preview {
+    font-size: 0.85rem;
     color: var(--text-secondary);
     white-space: nowrap;
     overflow: hidden;

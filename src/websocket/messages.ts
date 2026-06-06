@@ -19,6 +19,16 @@ type MessageEvent =
       };
     }
   | {
+      type: "conversation:message:new";
+      message: {
+        id: string;
+        body: string;
+        created_at: string;
+        senderId: string;
+        conversationId: string;
+      };
+    }
+  | {
       type: "notification:new";
       notification: {
         id: string;
@@ -116,88 +126,184 @@ export const messageWebSocketHandler = {
       return;
     }
 
-    if (
-      !payload ||
-      typeof payload !== "object" ||
-      !("type" in payload) ||
-      payload.type !== "message:create" ||
-      !("recipientUsername" in payload) ||
-      typeof payload.recipientUsername !== "string" ||
-      !("body" in payload) ||
-      typeof payload.body !== "string"
-    ) {
+    if (!payload || typeof payload !== "object" || !("type" in payload)) {
       send(ws, { type: "error", error: "Invalid message payload" });
       return;
     }
 
-    const body = payload.body.trim();
-    const recipientUsername = payload.recipientUsername.trim();
+    if (payload.type === "message:create") {
+      if (
+        !("recipientUsername" in payload) ||
+        typeof payload.recipientUsername !== "string" ||
+        !("body" in payload) ||
+        typeof payload.body !== "string"
+      ) {
+        send(ws, { type: "error", error: "Invalid message payload" });
+        return;
+      }
 
-    if (!body) {
-      send(ws, { type: "error", error: "Message cannot be empty" });
+      const body = payload.body.trim();
+      const recipientUsername = payload.recipientUsername.trim();
+
+      if (!body) {
+        send(ws, { type: "error", error: "Message cannot be empty" });
+        return;
+      }
+
+      if (body.length > 4000) {
+        send(ws, { type: "error", error: "Message is too long" });
+        return;
+      }
+
+      if (!recipientUsername) {
+        send(ws, { type: "error", error: "Recipient is required" });
+        return;
+      }
+
+      const [recipient] = await db`
+        SELECT id, username
+        FROM users
+        WHERE username = ${recipientUsername}
+      `;
+
+      if (!recipient) {
+        send(ws, { type: "error", error: "Recipient not found" });
+        return;
+      }
+
+      if (recipient.id === ws.data.userId) {
+        send(ws, { type: "error", error: "You cannot message yourself" });
+        return;
+      }
+
+      const [message] = await db`
+        INSERT INTO direct_messages (sender_id, recipient_id, body)
+        VALUES (${ws.data.userId}, ${recipient.id}, ${body})
+        RETURNING id, body, created_at
+      `;
+
+      const [notification] = await db`
+        INSERT INTO notifications (user_id, actor_id, type, body, href)
+        VALUES (
+          ${recipient.id},
+          ${ws.data.userId},
+          ${"direct_message"},
+          ${`${ws.data.username} sent you a message`},
+          ${`/messages/${ws.data.username}`}
+        )
+        RETURNING id, type, body, href, read_at, created_at
+      `;
+
+      sendToUsers([ws.data.userId, recipient.id], {
+        type: "message:new",
+        message: {
+          ...message,
+          sender: ws.data.username,
+          recipient: recipient.username,
+        },
+      });
+
+      sendToUsers([recipient.id], {
+        type: "notification:new",
+        notification: {
+          ...notification,
+          actor: ws.data.username,
+        },
+      });
+
       return;
     }
 
-    if (body.length > 4000) {
-      send(ws, { type: "error", error: "Message is too long" });
+    if (payload.type === "conversation:message:create") {
+      if (
+        !("conversationId" in payload) ||
+        typeof payload.conversationId !== "string" ||
+        !("body" in payload) ||
+        typeof payload.body !== "string"
+      ) {
+        send(ws, { type: "error", error: "Invalid message payload" });
+        return;
+      }
+
+      const body = payload.body.trim();
+      const conversationId = payload.conversationId.trim();
+
+      if (!body) {
+        send(ws, { type: "error", error: "Message cannot be empty" });
+        return;
+      }
+
+      if (body.length > 4000) {
+        send(ws, { type: "error", error: "Message is too long" });
+        return;
+      }
+
+      if (!conversationId) {
+        send(ws, { type: "error", error: "Conversation ID is required" });
+        return;
+      }
+
+      const [conversation] = await db`
+        SELECT initiator_id, recipient_id
+        FROM conversations
+        WHERE id = ${conversationId}
+      `;
+
+      if (!conversation) {
+        send(ws, { type: "error", error: "Conversation not found" });
+        return;
+      }
+
+      if (conversation.initiator_id !== ws.data.userId && conversation.recipient_id !== ws.data.userId) {
+        send(ws, { type: "error", error: "Forbidden" });
+        return;
+      }
+
+      const [message] = await db`
+        INSERT INTO conversation_messages (conversation_id, sender_id, body)
+        VALUES (${conversationId}, ${ws.data.userId}, ${body})
+        RETURNING id, conversation_id, sender_id, body, created_at
+      `;
+
+      const otherUserId = conversation.initiator_id === ws.data.userId
+        ? conversation.recipient_id
+        : conversation.initiator_id;
+
+      const [notification] = await db`
+        INSERT INTO notifications (user_id, actor_id, type, body, href)
+        VALUES (
+          ${otherUserId},
+          ${ws.data.userId},
+          ${"conversation:message"},
+          ${"New message in a conversation"},
+          ${`/conversations/${conversationId}`}
+        )
+        RETURNING id, type, body, href, read_at, created_at
+      `;
+
+      sendToUsers([ws.data.userId, otherUserId], {
+        type: "conversation:message:new",
+        message: {
+          id: message.id,
+          body: message.body,
+          created_at: message.created_at,
+          senderId: message.sender_id,
+          conversationId: message.conversation_id,
+        },
+      });
+
+      sendToUsers([otherUserId], {
+        type: "notification:new",
+        notification: {
+          ...notification,
+          actor: ws.data.username,
+        },
+      });
+
       return;
     }
 
-    if (!recipientUsername) {
-      send(ws, { type: "error", error: "Recipient is required" });
-      return;
-    }
-
-    const [recipient] = await db`
-      SELECT id, username
-      FROM users
-      WHERE username = ${recipientUsername}
-    `;
-
-    if (!recipient) {
-      send(ws, { type: "error", error: "Recipient not found" });
-      return;
-    }
-
-    if (recipient.id === ws.data.userId) {
-      send(ws, { type: "error", error: "You cannot message yourself" });
-      return;
-    }
-
-    const [message] = await db`
-      INSERT INTO direct_messages (sender_id, recipient_id, body)
-      VALUES (${ws.data.userId}, ${recipient.id}, ${body})
-      RETURNING id, body, created_at
-    `;
-
-    const [notification] = await db`
-      INSERT INTO notifications (user_id, actor_id, type, body, href)
-      VALUES (
-        ${recipient.id},
-        ${ws.data.userId},
-        ${"direct_message"},
-        ${`${ws.data.username} sent you a message`},
-        ${`/messages/${ws.data.username}`}
-      )
-      RETURNING id, type, body, href, read_at, created_at
-    `;
-
-    sendToUsers([ws.data.userId, recipient.id], {
-      type: "message:new",
-      message: {
-        ...message,
-        sender: ws.data.username,
-        recipient: recipient.username,
-      },
-    });
-
-    sendToUsers([recipient.id], {
-      type: "notification:new",
-      notification: {
-        ...notification,
-        actor: ws.data.username,
-      },
-    });
+    send(ws, { type: "error", error: "Unknown message type" });
   },
 
   close(ws: ServerWebSocket<MessageSocketData>) {

@@ -11,6 +11,8 @@
   import Feed from "./pages/Feed.svelte";
   import Messages from "./pages/Messages.svelte";
   import Conversation from "./pages/Conversation.svelte";
+  import Conversations from "./pages/Conversations.svelte";
+  import ConversationDetail from "./pages/ConversationDetail.svelte";
   import PostDetail from "./pages/PostDetail.svelte";
   import Profile from "./pages/Profile.svelte";
   import NewPost from "./pages/NewPost.svelte";
@@ -55,6 +57,8 @@
   "/": Feed,
   "/messages": Messages,
   "/messages/:username": Conversation,
+  "/conversations": Conversations,
+  "/conversations/:id": ConversationDetail,
   "/posts/:id": PostDetail,
   "/profile/:address": Profile,
   "/new": NewPost,
@@ -70,8 +74,8 @@
         <Link href="/">Feed</Link>
         <Link href="/new">New Post</Link>
         {#if $user}
-          <Link href="/messages" class="notification-link">
-            Messages
+          <Link href="/conversations" class="notification-link">
+            Conversations
             {#if $notificationUnreadCount > 0}
               <span class="notification-badge">{$notificationUnreadCount}</span>
             {/if}
@@ -91,9 +95,9 @@
       </div>
     </header>
 
-    <div class="layout" class:messages-layout={matched?.key?.startsWith('/messages')}>
+    <div class="layout" class:messages-layout={matched?.key?.startsWith('/conversations')}>
       <main class="content">
-        {#if matched?.key?.startsWith('/messages')}
+        {#if matched?.key?.startsWith('/conversations')}
           <div class="messages-wrapper">
             <ConversationSidebar currentPath={matched.key} />
             <div class="messages-main">
@@ -116,7 +120,7 @@
           {/if}
         {/if}
       </main>
-      {#if !matched?.key?.startsWith('/messages') && matched?.key !== '/new' && !matched?.key?.startsWith('/posts/') && !matched?.key?.startsWith('/profile/')}
+      {#if !matched?.key?.startsWith('/conversations') && matched?.key !== '/new' && !matched?.key?.startsWith('/posts/') && !matched?.key?.startsWith('/profile/')}
         <aside class="sidebar">
           <div class="sidebar-card">
             <h3>fastminds</h3>
