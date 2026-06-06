@@ -11,6 +11,8 @@
   --white: #fff;
   --border: #ccc;
   --text: #222;
+  --text-primary: var(--text);
+  --text-secondary: var(--text-muted);
   --text-muted: #555;
   --text-meta: #888;
   --upvote: #ff4500;

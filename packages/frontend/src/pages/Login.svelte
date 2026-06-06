@@ -6,6 +6,13 @@
   let password = $state("");
   let error = $state("");
   let loading = $state(false);
+  let formEl;
+
+  function handleKeydown(e) {
+    if (e.key === "Enter") {
+      formEl.requestSubmit();
+    }
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -25,7 +32,7 @@
 <div class="form-card">
   <h1>Log in</h1>
 
-  <form onsubmit={handleSubmit}>
+  <form bind:this={formEl} onsubmit={handleSubmit}>
     <div class="form-group">
       <label for="username">Username</label>
       <input id="username" type="text" bind:value={username} placeholder="your username" required minlength={3} />
@@ -33,7 +40,7 @@
 
     <div class="form-group">
       <label for="password">Password</label>
-      <input id="password" type="password" bind:value={password} placeholder="your password" required />
+      <input id="password" type="password" bind:value={password} placeholder="your password" required onkeydown={handleKeydown} />
     </div>
 
     {#if error}

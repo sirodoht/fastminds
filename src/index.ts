@@ -6,6 +6,7 @@ import { conversationsRoutes } from "./routes/conversations";
 import { messagesRoutes } from "./routes/messages";
 import { notificationsRoutes } from "./routes/notifications";
 import { postsRoutes } from "./routes/posts";
+import { usersRoutes } from "./routes/users";
 import {
   messageWebSocketHandler,
   upgradeMessagesWebSocket,
@@ -21,6 +22,7 @@ app.route("/api/conversations", conversationsRoutes);
 app.route("/api/messages", messagesRoutes);
 app.route("/api/notifications", notificationsRoutes);
 app.route("/api/posts", postsRoutes);
+app.route("/api/users", usersRoutes);
 app.use("/*", serveStatic({ root: "./packages/frontend/dist" }));
 app.get("*", async (c) => {
   if (c.req.path.startsWith("/api/")) {

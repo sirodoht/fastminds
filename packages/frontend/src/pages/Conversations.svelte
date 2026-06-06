@@ -1,7 +1,7 @@
 <script>
 import { onMount } from "svelte";
 import { api } from "../lib/api.js";
-import { restoreSession, user } from "../lib/stores.js";
+import { refreshNotificationUnreadCount, restoreSession, user } from "../lib/stores.js";
 import { navigate } from "../router/index.js";
 import Link from "../router/Link.svelte";
 
@@ -22,6 +22,7 @@ onMount(async () => {
   try {
     const data = await api("/api/conversations");
     conversations = data.conversations;
+    await refreshNotificationUnreadCount();
   } catch (err) {
     error = err.message;
   } finally {

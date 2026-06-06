@@ -1,8 +1,13 @@
 import { Hono } from "hono";
 import { db } from "../db";
 import { authMiddleware, type AuthEnv } from "../middleware/auth";
+import { ALL_LABELS } from "./users";
 
 const REVEAL_THRESHOLD = 10;
+
+function formatPgTextArray(arr: string[]): string {
+  return "{" + arr.map((v) => `"${v.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`).join(",") + "}";
+}
 
 const conversations = new Hono<AuthEnv>();
 
@@ -237,6 +242,14 @@ conversations.get("/:id", async (c) => {
 
   const otherUserId = isInitiator ? conversation.recipient_id : conversation.initiator_id;
 
+  await db`
+    UPDATE notifications
+    SET read_at = now()
+    WHERE user_id = ${userId}
+      AND href = ${`/conversations/${id}`}
+      AND read_at IS NULL
+  `;
+
   return c.json({
     conversation: {
       id: conversation.id,
@@ -327,6 +340,149 @@ conversations.post("/:id/messages", async (c) => {
     messageCount,
     revealed,
   });
+});
+
+// GET /api/conversations/:id/feedback — get current user's feedback for this conversation
+conversations.get("/:id/feedback", async (c) => {
+  const userId = c.get("userId");
+  const id = c.req.param("id");
+
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+    return c.json({ error: "Conversation not found" }, 404);
+  }
+
+  const [conversation] = await db`
+    SELECT id, initiator_id, recipient_id
+    FROM conversations
+    WHERE id = ${id}
+  `;
+
+  if (!conversation) {
+    return c.json({ error: "Conversation not found" }, 404);
+  }
+
+  if (conversation.initiator_id !== userId && conversation.recipient_id !== userId) {
+    return c.json({ error: "Forbidden" }, 403);
+  }
+
+  const [feedback] = await db`
+    SELECT id, thumbs, labels, created_at
+    FROM conversation_feedback
+    WHERE conversation_id = ${id} AND giver_id = ${userId}
+    LIMIT 1
+  `;
+
+  if (!feedback) {
+    return c.json({ feedback: null });
+  }
+
+  return c.json({
+    feedback: {
+      id: feedback.id,
+      thumbs: feedback.thumbs,
+      labels: feedback.labels,
+      createdAt: feedback.created_at,
+    },
+  });
+});
+
+// POST /api/conversations/:id/feedback — leave or update feedback for a conversation partner
+conversations.post("/:id/feedback", async (c) => {
+  const userId = c.get("userId");
+  const id = c.req.param("id");
+  const { labels, thumbs } = await c.req.json();
+
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+    return c.json({ error: "Conversation not found" }, 404);
+  }
+
+  const [conversation] = await db`
+    SELECT id, initiator_id, recipient_id
+    FROM conversations
+    WHERE id = ${id}
+  `;
+
+  if (!conversation) {
+    return c.json({ error: "Conversation not found" }, 404);
+  }
+
+  if (conversation.initiator_id !== userId && conversation.recipient_id !== userId) {
+    return c.json({ error: "Forbidden" }, 403);
+  }
+
+  // Check reveal threshold
+  const [countRow] = await db`
+    SELECT COUNT(*)::int AS count FROM conversation_messages WHERE conversation_id = ${id}
+  `;
+  if (countRow.count < REVEAL_THRESHOLD) {
+    return c.json({ error: "Feedback is only available after 10 messages have been exchanged" }, 400);
+  }
+
+  // Check both participants exchanged messages
+  const [bothExchanged] = await db`
+    SELECT
+      EXISTS (SELECT 1 FROM conversation_messages WHERE conversation_id = ${id} AND sender_id = ${conversation.initiator_id}) AS initiator_sent,
+      EXISTS (SELECT 1 FROM conversation_messages WHERE conversation_id = ${id} AND sender_id = ${conversation.recipient_id}) AS recipient_sent
+  `;
+  if (!bothExchanged.initiator_sent || !bothExchanged.recipient_sent) {
+    return c.json({ error: "Both participants must have exchanged messages before feedback can be given" }, 400);
+  }
+
+  // Validate labels
+  const normalizedLabels: string[] = [];
+  if (labels && Array.isArray(labels)) {
+    for (const label of labels) {
+      if (typeof label !== "string") {
+        return c.json({ error: "Labels must be strings" }, 400);
+      }
+      const trimmed = label.trim();
+      if (!ALL_LABELS.has(trimmed)) {
+        return c.json({ error: `Invalid label: ${trimmed}` }, 400);
+      }
+      normalizedLabels.push(trimmed);
+    }
+  }
+
+  // Validate thumbs
+  if (thumbs !== undefined && thumbs !== null) {
+    if (typeof thumbs !== "number" || !Number.isInteger(thumbs) || thumbs < -2 || thumbs > 2) {
+      return c.json({ error: "Thumbs must be an integer between -2 and 2" }, 400);
+    }
+  }
+
+  const receiverId = conversation.initiator_id === userId
+    ? conversation.recipient_id
+    : conversation.initiator_id;
+
+  // Upsert: update if exists, insert if not
+  const [existingFeedback] = await db`
+    SELECT id FROM conversation_feedback
+    WHERE conversation_id = ${id} AND giver_id = ${userId}
+    LIMIT 1
+  `;
+
+  let feedback;
+  if (existingFeedback) {
+    [feedback] = await db`
+      UPDATE conversation_feedback
+      SET thumbs = ${thumbs ?? null}, labels = ${formatPgTextArray(normalizedLabels)}, created_at = now()
+      WHERE id = ${existingFeedback.id}
+      RETURNING id, created_at
+    `;
+  } else {
+    [feedback] = await db`
+      INSERT INTO conversation_feedback (conversation_id, giver_id, receiver_id, thumbs, labels)
+      VALUES (${id}, ${userId}, ${receiverId}, ${thumbs ?? null}, ${formatPgTextArray(normalizedLabels)})
+      RETURNING id, created_at
+    `;
+  }
+
+  return c.json({
+    feedback: {
+      id: feedback.id,
+      createdAt: feedback.created_at,
+    },
+  }, existingFeedback ? 200 : 201);
 });
 
 export { conversations as conversationsRoutes };

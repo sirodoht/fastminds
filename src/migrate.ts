@@ -119,5 +119,23 @@ await db`
   WHERE read_at IS NULL;
 `;
 
-console.log("Migration complete: users, posts, direct_messages, conversations, conversation_messages, post_updates, and notifications tables ready");
+await db`
+  CREATE TABLE IF NOT EXISTS conversation_feedback (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    conversation_id UUID NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+    giver_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    receiver_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    thumbs INTEGER CHECK (thumbs >= -2 AND thumbs <= 2),
+    labels TEXT[] DEFAULT '{}',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (conversation_id, giver_id)
+  );
+`;
+
+await db`
+  CREATE INDEX IF NOT EXISTS conversation_feedback_receiver_idx
+  ON conversation_feedback (receiver_id, created_at);
+`;
+
+console.log("Migration complete: users, posts, direct_messages, conversations, conversation_messages, post_updates, notifications, and conversation_feedback tables ready");
 process.exit(0);
