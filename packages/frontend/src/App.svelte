@@ -29,6 +29,7 @@
   });
 
   let notificationSocket;
+  let dropdownOpen = $state(false);
 
   function connectNotificationSocket() {
     const token = localStorage.getItem("token");
@@ -56,6 +57,8 @@
   });
 </script>
 
+<svelte:window onclick={() => { dropdownOpen = false; }} />
+
 <Router routes={{
   "/": Feed,
   "/conversations": Conversations,
@@ -76,10 +79,7 @@
         <Link href="/">fastminds</Link>
       </div>
       <nav class="header-nav">
-        <Link href="/">Feed</Link>
-        {#if $user && $user.emailVerified}
-          <Link href="/new">New Post</Link>
-        {/if}
+        <Link href="/">Questions</Link>
         {#if $user}
           <Link href="/conversations" class="notification-link">
             Conversations
@@ -87,16 +87,26 @@
               <span class="notification-badge">{$notificationUnreadCount}</span>
             {/if}
           </Link>
-          <Link href="/bookmarks">Bookmarks</Link>
+        {/if}
+        {#if $user && $user.emailVerified}
+          <Link href="/new">New Post</Link>
         {/if}
       </nav>
       <div class="header-right">
         {#if $user}
-          <Link href="/profile/{$user.username}" class="username">{$user.username}</Link>
-          <Link href="/settings">Settings</Link>
-          <button onclick={() => { logout(); navigate("/"); }}>
-            Log out
-          </button>
+          <div class="dropdown" class:open={dropdownOpen}>
+            <button class="dropdown-toggle" onclick={(e) => { e.stopPropagation(); dropdownOpen = !dropdownOpen; }}>
+              {$user.username}
+            </button>
+            <div class="dropdown-menu" role="menu" tabindex="-1" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()}>
+              <Link href="/profile/{$user.username}" onclick={() => { dropdownOpen = false; }}>Profile</Link>
+              <Link href="/bookmarks" onclick={() => { dropdownOpen = false; }}>Bookmarks</Link>
+              <Link href="/settings" onclick={() => { dropdownOpen = false; }}>Settings</Link>
+              <button onclick={() => { dropdownOpen = false; logout(); navigate("/"); }}>
+                Log out
+              </button>
+            </div>
+          </div>
         {:else}
           <Link href="/login">Log in</Link>
           <Link href="/register">Register</Link>

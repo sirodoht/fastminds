@@ -38,7 +38,7 @@
 <div class="form-card" style="max-width:600px;margin:0 auto">
   <h1>Submit a new post</h1>
 
-  <form on:submit={handleSubmit}>
+  <form onsubmit={handleSubmit}>
     <div class="form-group">
       <label for="title">Title</label>
       <input

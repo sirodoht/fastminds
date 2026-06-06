@@ -97,7 +97,7 @@ onDestroy(() => {
     display: flex;
     flex-direction: column;
   }
-  .conversation-row {
+  :global(.conversation-row) {
     display: flex;
     flex-direction: column;
     gap: 2px;
@@ -108,8 +108,8 @@ onDestroy(() => {
     transition: background 0.15s;
     cursor: pointer;
   }
-  .conversation-row:hover,
-  .conversation-row.active {
+  :global(.conversation-row:hover),
+  :global(.conversation-row.active) {
     background: var(--bg-secondary);
   }
   .row-title {

@@ -171,6 +171,70 @@ a:visited {
   text-decoration: none;
 }
 
+.dropdown {
+  position: relative;
+}
+
+.dropdown-toggle {
+  color: var(--white);
+  text-decoration: none;
+  font-size: .8rem;
+  padding: 4px 10px;
+  border-radius: 3px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background .15s;
+}
+
+.dropdown-toggle:hover {
+  background: rgba(255,255,255,.2);
+}
+
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 140px;
+  background: var(--white);
+  border-radius: 3px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  padding: 4px;
+  z-index: 200;
+}
+
+.dropdown.open .dropdown-menu {
+  display: flex;
+  flex-direction: column;
+}
+
+.dropdown-menu a,
+.dropdown-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  color: var(--text);
+  text-decoration: none;
+  font-size: .85rem;
+  padding: 6px 10px;
+  border-radius: 3px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background .15s;
+}
+
+.dropdown-menu a:visited {
+  color: var(--text);
+}
+
+.dropdown-menu a:hover,
+.dropdown-menu button:hover {
+  background: #f0f0f0;
+  text-decoration: none;
+}
+
 /* ──────── Layout ──────── */
 
 .layout {
@@ -274,10 +338,6 @@ a:visited {
   border-radius: 3px;
   margin-bottom: 8px;
   transition: border-color .15s;
-}
-
-.post:hover {
-  border-color: #aaa;
 }
 
 .post-main {

@@ -67,7 +67,7 @@ onMount(async () => {
     display: flex;
     flex-direction: column;
   }
-  .conversation-row {
+  :global(.conversation-row) {
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -77,7 +77,7 @@ onMount(async () => {
     color: inherit;
     transition: background 0.15s;
   }
-  .conversation-row:hover {
+  :global(.conversation-row:hover) {
     background: var(--bg-secondary);
   }
   .conversation-title {
