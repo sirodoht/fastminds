@@ -10,7 +10,6 @@
   } from "./lib/stores.js";
   import Feed from "./pages/Feed.svelte";
   import Messages from "./pages/Messages.svelte";
-  import Notifications from "./pages/Notifications.svelte";
   import Conversation from "./pages/Conversation.svelte";
   import PostDetail from "./pages/PostDetail.svelte";
   import Profile from "./pages/Profile.svelte";
@@ -56,7 +55,6 @@
   "/": Feed,
   "/messages": Messages,
   "/messages/:username": Conversation,
-  "/notifications": Notifications,
   "/posts/:id": PostDetail,
   "/profile/:address": Profile,
   "/new": NewPost,
@@ -72,9 +70,8 @@
         <Link href="/">Feed</Link>
         <Link href="/new">New Post</Link>
         {#if $user}
-          <Link href="/messages">Messages</Link>
-          <Link href="/notifications" class="notification-link">
-            Notifications
+          <Link href="/messages" class="notification-link">
+            Messages
             {#if $notificationUnreadCount > 0}
               <span class="notification-badge">{$notificationUnreadCount}</span>
             {/if}
