@@ -77,6 +77,8 @@ auth.post("/register/checkout-session", async (c) => {
   const passwordHash = await Bun.password.hash(password);
   const registrationToken = generateToken();
 
+  await db`DELETE FROM pending_registrations WHERE username = ${username}`;
+
   await db`
     INSERT INTO pending_registrations (username, email, password_hash)
     VALUES (${username}, ${email}, ${passwordHash})
