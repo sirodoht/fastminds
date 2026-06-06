@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { db } from "../db";
+import { db, generateUUID } from "../db";
 import { authMiddleware, type AuthEnv } from "../middleware/auth";
 import { adminMiddleware } from "../middleware/admin";
 import { sendAdminEmail, logAdminEvent } from "../lib/email";
@@ -99,9 +99,10 @@ moderation.post("/report", authMiddleware, async (c) => {
     return c.json({ error: "You already have a pending report for this target" }, 409);
   }
 
+  const reportId = generateUUID();
   const [report] = await db`
-    INSERT INTO reports (reporter_id, target_type, target_id, reason, details)
-    VALUES (${userId}, ${target_type}, ${target_id}, ${reason}, ${details || ""})
+    INSERT INTO reports (id, reporter_id, target_type, target_id, reason, details)
+    VALUES (${reportId}, ${userId}, ${target_type}, ${target_id}, ${reason}, ${details || ""})
     RETURNING id, reporter_id, target_type, target_id, reason, details, status, created_at
   `;
 
@@ -188,14 +189,14 @@ moderation.get("/reports", adminMiddleware, async (c) => {
         posts.title AS post_title
       FROM reports
       JOIN users ON users.id = reports.reporter_id
-      LEFT JOIN posts ON reports.target_type = 'post' AND posts.id = reports.target_id::uuid
+      LEFT JOIN posts ON reports.target_type = 'post' AND posts.id = reports.target_id
       WHERE reports.status = ${statusFilter}
         AND reports.target_type = ${targetTypeFilter}
       ORDER BY reports.created_at DESC
       LIMIT ${limit} OFFSET ${offset}
     `;
     [countRow] = await db`
-      SELECT COUNT(*)::int AS total FROM reports
+      SELECT COUNT(*) AS total FROM reports
       WHERE status = ${statusFilter} AND target_type = ${targetTypeFilter}
     `;
   } else if (statusFilter) {
@@ -213,13 +214,13 @@ moderation.get("/reports", adminMiddleware, async (c) => {
         posts.title AS post_title
       FROM reports
       JOIN users ON users.id = reports.reporter_id
-      LEFT JOIN posts ON reports.target_type = 'post' AND posts.id = reports.target_id::uuid
+      LEFT JOIN posts ON reports.target_type = 'post' AND posts.id = reports.target_id
       WHERE reports.status = ${statusFilter}
       ORDER BY reports.created_at DESC
       LIMIT ${limit} OFFSET ${offset}
     `;
     [countRow] = await db`
-      SELECT COUNT(*)::int AS total FROM reports WHERE status = ${statusFilter}
+      SELECT COUNT(*) AS total FROM reports WHERE status = ${statusFilter}
     `;
   } else if (targetTypeFilter) {
     rows = await db`
@@ -236,13 +237,13 @@ moderation.get("/reports", adminMiddleware, async (c) => {
         posts.title AS post_title
       FROM reports
       JOIN users ON users.id = reports.reporter_id
-      LEFT JOIN posts ON reports.target_type = 'post' AND posts.id = reports.target_id::uuid
+      LEFT JOIN posts ON reports.target_type = 'post' AND posts.id = reports.target_id
       WHERE reports.target_type = ${targetTypeFilter}
       ORDER BY reports.created_at DESC
       LIMIT ${limit} OFFSET ${offset}
     `;
     [countRow] = await db`
-      SELECT COUNT(*)::int AS total FROM reports WHERE target_type = ${targetTypeFilter}
+      SELECT COUNT(*) AS total FROM reports WHERE target_type = ${targetTypeFilter}
     `;
   } else {
     rows = await db`
@@ -259,11 +260,11 @@ moderation.get("/reports", adminMiddleware, async (c) => {
         posts.title AS post_title
       FROM reports
       JOIN users ON users.id = reports.reporter_id
-      LEFT JOIN posts ON reports.target_type = 'post' AND posts.id = reports.target_id::uuid
+      LEFT JOIN posts ON reports.target_type = 'post' AND posts.id = reports.target_id
       ORDER BY reports.created_at DESC
       LIMIT ${limit} OFFSET ${offset}
     `;
-    [countRow] = await db`SELECT COUNT(*)::int AS total FROM reports`;
+    [countRow] = await db`SELECT COUNT(*) AS total FROM reports`;
   }
 
   const reports = rows.map((r) => ({
@@ -331,9 +332,10 @@ moderation.post("/reports/:id/resolve", adminMiddleware, async (c) => {
     UPDATE reports SET status = 'resolved' WHERE id = ${id}
   `;
 
+  const actionId = generateUUID();
   const [action] = await db`
-    INSERT INTO moderation_actions (report_id, moderator_id, action_type, note)
-    VALUES (${id}, ${moderatorId}, ${action_type}, ${note || ""})
+    INSERT INTO moderation_actions (id, report_id, moderator_id, action_type, note)
+    VALUES (${actionId}, ${id}, ${moderatorId}, ${action_type}, ${note || ""})
     RETURNING id, report_id, action_type, note, created_at
   `;
 

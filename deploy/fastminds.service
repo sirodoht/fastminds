@@ -9,6 +9,9 @@ Group=deploy
 WorkingDirectory=/var/www/fastminds
 EnvironmentFile=/var/www/fastminds/.env
 
+# Run migrations (SQLite schema)
+ExecStartPre=/usr/bin/bun run src/migrate.ts
+
 # Build the frontend before starting the server
 ExecStartPre=/usr/bin/bun run build:frontend
 

@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { sign } from "hono/jwt";
 import Stripe from "stripe";
-import { db } from "../db";
+import { db, generateUUID } from "../db";
 import { authMiddleware, type AuthEnv } from "../middleware/auth";
 import { sendEmail, sendAdminEmail, logAdminEvent, buildVerificationUrl } from "../lib/email";
 
@@ -120,9 +120,10 @@ auth.post("/register/bypass", async (c) => {
 
   const passwordHash = await Bun.password.hash(password);
 
+  const userId = generateUUID();
   const [user] = await db`
-    INSERT INTO users (username, password_hash, email, email_verified, stripe_checkout_session_id, payment_verified)
-    VALUES (${username}, ${passwordHash}, ${email}, FALSE, NULL, TRUE)
+    INSERT INTO users (id, username, password_hash, email, email_verified, stripe_checkout_session_id, payment_verified)
+    VALUES (${userId}, ${username}, ${passwordHash}, ${email}, FALSE, NULL, TRUE)
     RETURNING id, username, email, email_verified, is_admin, created_at
   `;
 
@@ -192,9 +193,10 @@ auth.post("/register/complete", async (c) => {
     return c.json({ error: "Email already taken" }, 409);
   }
 
+  const userId = generateUUID();
   const [user] = await db`
-    INSERT INTO users (username, password_hash, email, email_verified, stripe_checkout_session_id, payment_verified)
-    VALUES (${pending.username}, ${pending.password_hash}, ${pending.email}, FALSE, ${sessionId}, TRUE)
+    INSERT INTO users (id, username, password_hash, email, email_verified, stripe_checkout_session_id, payment_verified)
+    VALUES (${userId}, ${pending.username}, ${pending.password_hash}, ${pending.email}, FALSE, ${sessionId}, TRUE)
     RETURNING id, username, email, email_verified, is_admin, created_at
   `;
 
@@ -415,9 +417,10 @@ auth.delete("/account", authMiddleware, async (c) => {
   let [deletedUser] = await db`SELECT id FROM users WHERE username = '[deleted]'`;
   if (!deletedUser) {
     const deletedPasswordHash = await Bun.password.hash(generateToken());
+    const deletedUserId = generateUUID();
     [deletedUser] = await db`
-      INSERT INTO users (username, password_hash, email, email_verified, payment_verified)
-      VALUES ('[deleted]', ${deletedPasswordHash}, NULL, FALSE, TRUE)
+      INSERT INTO users (id, username, password_hash, email, email_verified, payment_verified)
+      VALUES (${deletedUserId}, '[deleted]', ${deletedPasswordHash}, NULL, FALSE, TRUE)
       RETURNING id
     `;
   }

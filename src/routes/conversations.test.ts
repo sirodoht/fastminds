@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import { db } from "../db";
+import { db, generateUUID } from "../db";
 
 process.env.NODE_ENV = "test";
 process.env.JWT_SECRET = process.env.JWT_SECRET || "test-secret-key-for-testing-only";
@@ -9,9 +9,10 @@ const TEST_PORT = 3457;
 // Helper to create a user and return token
 async function createUser(username: string) {
   const passwordHash = await Bun.password.hash("password123");
+  const userId = generateUUID();
   const [user] = await db`
-    INSERT INTO users (username, password_hash, email_verified)
-    VALUES (${username}, ${passwordHash}, TRUE)
+    INSERT INTO users (id, username, password_hash, email_verified)
+    VALUES (${userId}, ${username}, ${passwordHash}, TRUE)
     RETURNING id, username
   `;
   return user;
@@ -19,9 +20,10 @@ async function createUser(username: string) {
 
 // Helper to create a post
 async function createPost(title: string, body: string, authorId: string) {
+  const postId = generateUUID();
   const [post] = await db`
-    INSERT INTO posts (title, body, author_id)
-    VALUES (${title}, ${body}, ${authorId})
+    INSERT INTO posts (id, title, body, author_id)
+    VALUES (${postId}, ${title}, ${body}, ${authorId})
     RETURNING id, title, body, author_id, archived_at
   `;
   return post;
@@ -99,9 +101,10 @@ describe("Conversations", () => {
 
   test("POST /api/conversations/from-post/:id — rejects unverified email", async () => {
     const passwordHash = await Bun.password.hash("password123");
+    const unverifiedUserId = generateUUID();
     const [unverifiedUser] = await db`
-      INSERT INTO users (username, password_hash, email_verified)
-      VALUES (${"testuser_unverified"}, ${passwordHash}, FALSE)
+      INSERT INTO users (id, username, password_hash, email_verified)
+      VALUES (${unverifiedUserId}, ${"testuser_unverified"}, ${passwordHash}, FALSE)
       RETURNING id, username
     `;
     const loginRes = await fetch(`http://localhost:${TEST_PORT}/api/auth/login`, {
@@ -203,9 +206,10 @@ describe("Conversations", () => {
 
   test("POST /api/conversations/from-post/:id — rejects duplicate conversation on same post", async () => {
     // Create a fresh post for this test
+    const freshPostId = generateUUID();
     const [freshPost] = await db`
-      INSERT INTO posts (title, body, author_id)
-      VALUES (${"TEST Duplicate"}, ${"body"}, ${userA.id})
+      INSERT INTO posts (id, title, body, author_id)
+      VALUES (${freshPostId}, ${"TEST Duplicate"}, ${"body"}, ${userA.id})
       RETURNING id
     `;
 
@@ -241,9 +245,10 @@ describe("Conversations", () => {
   });
 
   test("POST /api/conversations/from-post/:id — rejects archived post", async () => {
+    const archivedPostId = generateUUID();
     const [archivedPost] = await db`
-      INSERT INTO posts (title, body, author_id, archived_at)
-      VALUES (${"TEST Archived"}, ${"archived"}, ${userA.id}, ${new Date()})
+      INSERT INTO posts (id, title, body, author_id, archived_at)
+      VALUES (${archivedPostId}, ${"TEST Archived"}, ${"archived"}, ${userA.id}, ${new Date().toISOString()})
       RETURNING id
     `;
 
@@ -268,9 +273,10 @@ describe("Conversations", () => {
     // Create 10 fresh posts for this test
     const freshPosts = [];
     for (let i = 0; i < 10; i++) {
+      const pId = generateUUID();
       const [p] = await db`
-        INSERT INTO posts (title, body, author_id)
-        VALUES (${`TEST Daily Limit ${i}`}, ${"body"}, ${userA.id})
+        INSERT INTO posts (id, title, body, author_id)
+        VALUES (${pId}, ${`TEST Daily Limit ${i}`}, ${"body"}, ${userA.id})
         RETURNING id
       `;
       freshPosts.push(p.id);
@@ -278,16 +284,18 @@ describe("Conversations", () => {
 
     // Create 10 conversations today on different posts
     for (let i = 0; i < 10; i++) {
+      const convId = generateUUID();
       await db`
-        INSERT INTO conversations (post_id, initiator_id, recipient_id)
-        VALUES (${freshPosts[i]}, ${userB.id}, ${userA.id})
+        INSERT INTO conversations (id, post_id, initiator_id, recipient_id)
+        VALUES (${convId}, ${freshPosts[i]}, ${userB.id}, ${userA.id})
       `;
     }
 
     // Try to start an 11th conversation on a new post
+    const eleventhPostId = generateUUID();
     const [eleventhPost] = await db`
-      INSERT INTO posts (title, body, author_id)
-      VALUES (${"TEST Daily Limit 11"}, ${"body"}, ${userA.id})
+      INSERT INTO posts (id, title, body, author_id)
+      VALUES (${eleventhPostId}, ${"TEST Daily Limit 11"}, ${"body"}, ${userA.id})
       RETURNING id
     `;
 
@@ -311,9 +319,10 @@ describe("Conversations", () => {
 
   test("GET /api/conversations/:id — returns conversation with blind phase", async () => {
     // Create a fresh post for this test
+    const freshPostId = generateUUID();
     const [freshPost] = await db`
-      INSERT INTO posts (title, body, author_id)
-      VALUES (${"TEST Blind Phase"}, ${"body"}, ${userA.id})
+      INSERT INTO posts (id, title, body, author_id)
+      VALUES (${freshPostId}, ${"TEST Blind Phase"}, ${"body"}, ${userA.id})
       RETURNING id
     `;
 
@@ -355,9 +364,10 @@ describe("Conversations", () => {
 
   test("POST /api/conversations/:id/messages — sends messages and triggers reveal at 10", async () => {
     // Create a fresh post for this test
+    const freshPostId = generateUUID();
     const [freshPost] = await db`
-      INSERT INTO posts (title, body, author_id)
-      VALUES (${"TEST Reveal"}, ${"body"}, ${userA.id})
+      INSERT INTO posts (id, title, body, author_id)
+      VALUES (${freshPostId}, ${"TEST Reveal"}, ${"body"}, ${userA.id})
       RETURNING id
     `;
 

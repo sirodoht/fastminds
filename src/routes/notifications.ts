@@ -26,7 +26,7 @@ notifications.get("/", async (c) => {
   `;
 
   const [count] = await db`
-    SELECT COUNT(*)::int AS unread_count
+    SELECT COUNT(*) AS unread_count
     FROM notifications
     WHERE user_id = ${userId}
       AND read_at IS NULL
@@ -42,7 +42,7 @@ notifications.get("/unread-count", async (c) => {
   const userId = c.get("userId");
 
   const [count] = await db`
-    SELECT COUNT(*)::int AS unread_count
+    SELECT COUNT(*) AS unread_count
     FROM notifications
     WHERE user_id = ${userId}
       AND read_at IS NULL
@@ -56,7 +56,7 @@ notifications.post("/read-all", async (c) => {
 
   await db`
     UPDATE notifications
-    SET read_at = now()
+    SET read_at = datetime('now')
     WHERE user_id = ${userId}
       AND read_at IS NULL
   `;

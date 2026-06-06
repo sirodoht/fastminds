@@ -1,15 +1,11 @@
 import { Hono } from "hono";
-import { db } from "../db";
+import { db, generateUUID } from "../db";
 import { authMiddleware, verifiedEmailMiddleware, type AuthEnv } from "../middleware/auth";
 import { sendAdminEmail, logAdminEvent } from "../lib/email";
 import { ALL_LABELS } from "./users";
 import { validateUUID } from "../lib/validation";
 
 const REVEAL_THRESHOLD = 10;
-
-function formatPgTextArray(arr: string[]): string {
-  return "{" + arr.map((v) => `"${v.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`).join(",") + "}";
-}
 
 const conversations = new Hono<AuthEnv>();
 
@@ -64,7 +60,7 @@ conversations.post("/from-post/:id", verifiedEmailMiddleware, async (c) => {
 
   // Daily limit: max 10 new conversations per day
   const [dailyCount] = await db`
-    SELECT COUNT(*)::int AS count FROM conversations
+    SELECT COUNT(*) AS count FROM conversations
     WHERE initiator_id = ${userId}
       AND created_at >= CURRENT_DATE
   `;
@@ -73,22 +69,26 @@ conversations.post("/from-post/:id", verifiedEmailMiddleware, async (c) => {
     return c.json({ error: "You have reached the daily limit of 10 new conversations" }, 429);
   }
 
+  const conversationId = generateUUID();
   const [conversation] = await db`
-    INSERT INTO conversations (post_id, initiator_id, recipient_id)
-    VALUES (${postId}, ${userId}, ${post.author_id})
+    INSERT INTO conversations (id, post_id, initiator_id, recipient_id)
+    VALUES (${conversationId}, ${postId}, ${userId}, ${post.author_id})
     RETURNING id, post_id, initiator_id, recipient_id, created_at
   `;
 
+  const messageId = generateUUID();
   const [message] = await db`
-    INSERT INTO conversation_messages (conversation_id, sender_id, body)
-    VALUES (${conversation.id}, ${userId}, ${body.trim()})
+    INSERT INTO conversation_messages (id, conversation_id, sender_id, body)
+    VALUES (${messageId}, ${conversation.id}, ${userId}, ${body.trim()})
     RETURNING id, body, created_at
   `;
 
   // Create notification for post author
+  const notificationId = generateUUID();
   await db`
-    INSERT INTO notifications (user_id, actor_id, type, body, href)
+    INSERT INTO notifications (id, user_id, actor_id, type, body, href)
     VALUES (
+      ${notificationId},
       ${post.author_id},
       ${userId},
       ${"conversation:new"},
@@ -139,7 +139,7 @@ conversations.get("/", async (c) => {
       recipient.username AS recipient_username,
       last_messages.last_body,
       last_messages.last_created_at,
-      (SELECT COUNT(*)::int FROM conversation_messages WHERE conversation_id = conversations.id) AS message_count
+      (SELECT COUNT(*) FROM conversation_messages WHERE conversation_id = conversations.id) AS message_count
     FROM conversations
     JOIN posts ON conversations.post_id = posts.id
     JOIN users AS initiator ON conversations.initiator_id = initiator.id
@@ -248,7 +248,7 @@ conversations.get("/:id", async (c) => {
 
   await db`
     UPDATE notifications
-    SET read_at = now()
+    SET read_at = datetime('now')
     WHERE user_id = ${userId}
       AND href = ${`/conversations/${id}`}
       AND read_at IS NULL
@@ -306,9 +306,10 @@ conversations.post("/:id/messages", async (c) => {
     return c.json({ error: "Forbidden" }, 403);
   }
 
+  const messageId = generateUUID();
   const [message] = await db`
-    INSERT INTO conversation_messages (conversation_id, sender_id, body)
-    VALUES (${id}, ${userId}, ${body.trim()})
+    INSERT INTO conversation_messages (id, conversation_id, sender_id, body)
+    VALUES (${messageId}, ${id}, ${userId}, ${body.trim()})
     RETURNING id, conversation_id, sender_id, body, created_at
   `;
 
@@ -318,7 +319,7 @@ conversations.post("/:id/messages", async (c) => {
 
   // Count messages after insert
   const [countRow] = await db`
-    SELECT COUNT(*)::int AS count FROM conversation_messages WHERE conversation_id = ${id}
+    SELECT COUNT(*) AS count FROM conversation_messages WHERE conversation_id = ${id}
   `;
   const messageCount = countRow.count;
   const revealed = messageCount >= REVEAL_THRESHOLD;
@@ -337,7 +338,7 @@ conversations.post("/:id/messages", async (c) => {
     `;
 
     const messageLines = messages.map((m: any, i: number) =>
-      `${i + 1}. [${m.created_at.toISOString()}] ${m.sender_username}: ${m.body}`
+      `${i + 1}. [${new Date(m.created_at).toISOString()}] ${m.sender_username}: ${m.body}`
     ).join("\n");
 
     const emailText = `A conversation has reached the 10-message reveal threshold.
@@ -361,7 +362,7 @@ ${messageLines}`;
 <p><b>Post Body:</b><br><pre>${post?.body || "N/A"}</pre></p>
 <p><b>Messages:</b></p>
 <ol>
-${messages.map((m: any) => `<li><b>${m.sender_username}</b> (${m.created_at.toISOString()}):<br>${m.body}</li>`).join("\n")}
+${messages.map((m: any) => `<li><b>${m.sender_username}</b> (${new Date(m.created_at).toISOString()}):<br>${m.body}</li>`).join("\n")}
 </ol>`;
 
     await sendAdminEmail({
@@ -373,9 +374,11 @@ ${messages.map((m: any) => `<li><b>${m.sender_username}</b> (${m.created_at.toIS
   }
 
   // Notification for the other user
+  const notificationId = generateUUID();
   await db`
-    INSERT INTO notifications (user_id, actor_id, type, body, href)
+    INSERT INTO notifications (id, user_id, actor_id, type, body, href)
     VALUES (
+      ${notificationId},
       ${otherUserId},
       ${userId},
       ${"conversation:message"},
@@ -471,7 +474,7 @@ conversations.post("/:id/feedback", async (c) => {
 
   // Check reveal threshold
   const [countRow] = await db`
-    SELECT COUNT(*)::int AS count FROM conversation_messages WHERE conversation_id = ${id}
+    SELECT COUNT(*) AS count FROM conversation_messages WHERE conversation_id = ${id}
   `;
   if (countRow.count < REVEAL_THRESHOLD) {
     return c.json({ error: "Feedback is only available after 10 messages have been exchanged" }, 400);
@@ -524,14 +527,15 @@ conversations.post("/:id/feedback", async (c) => {
   if (existingFeedback) {
     [feedback] = await db`
       UPDATE conversation_feedback
-      SET thumbs = ${thumbs ?? null}, labels = ${formatPgTextArray(normalizedLabels)}, created_at = now()
+      SET thumbs = ${thumbs ?? null}, labels = ${JSON.stringify(normalizedLabels)}, created_at = datetime('now')
       WHERE id = ${existingFeedback.id}
       RETURNING id, created_at
     `;
   } else {
+    const feedbackId = generateUUID();
     [feedback] = await db`
-      INSERT INTO conversation_feedback (conversation_id, giver_id, receiver_id, thumbs, labels)
-      VALUES (${id}, ${userId}, ${receiverId}, ${thumbs ?? null}, ${formatPgTextArray(normalizedLabels)})
+      INSERT INTO conversation_feedback (id, conversation_id, giver_id, receiver_id, thumbs, labels)
+      VALUES (${feedbackId}, ${id}, ${userId}, ${receiverId}, ${thumbs ?? null}, ${JSON.stringify(normalizedLabels)})
       RETURNING id, created_at
     `;
   }

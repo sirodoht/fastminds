@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import { db } from "../db";
+import { db, generateUUID } from "../db";
 
 process.env.NODE_ENV = "test";
 process.env.JWT_SECRET = process.env.JWT_SECRET || "test-secret-key-for-testing-only";
@@ -8,18 +8,20 @@ const TEST_PORT = 3459;
 
 async function createUser(username: string) {
   const passwordHash = await Bun.password.hash("password123");
+  const userId = generateUUID();
   const [user] = await db`
-    INSERT INTO users (username, password_hash, email_verified)
-    VALUES (${username}, ${passwordHash}, TRUE)
+    INSERT INTO users (id, username, password_hash, email_verified)
+    VALUES (${userId}, ${username}, ${passwordHash}, TRUE)
     RETURNING id, username
   `;
   return user;
 }
 
 async function createPost(title: string, body: string, authorId: string) {
+  const postId = generateUUID();
   const [post] = await db`
-    INSERT INTO posts (title, body, author_id)
-    VALUES (${title}, ${body}, ${authorId})
+    INSERT INTO posts (id, title, body, author_id)
+    VALUES (${postId}, ${title}, ${body}, ${authorId})
     RETURNING id, title, body, author_id
   `;
   return post;
@@ -296,9 +298,10 @@ describe("Reputation System", () => {
   test("GET /api/users/:id/reputation — visible after 10 feedback conversations", async () => {
     // Create 10 conversations with feedback from userC
     for (let i = 0; i < 10; i++) {
+      const pId = generateUUID();
       const [p] = await db`
-        INSERT INTO posts (title, body, author_id)
-        VALUES (${`REP Visibility ${i}`}, ${"body"}, ${userA.id})
+        INSERT INTO posts (id, title, body, author_id)
+        VALUES (${pId}, ${`REP Visibility ${i}`}, ${"body"}, ${userA.id})
         RETURNING id
       `;
 

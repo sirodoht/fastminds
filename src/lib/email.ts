@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db, generateUUID } from "../db";
 
 interface SendEmailOptions {
   to: string;
@@ -80,8 +80,9 @@ export async function sendAdminEmail(opts: Omit<SendEmailOptions, "to">) {
 }
 
 export async function logAdminEvent(eventType: string, body: string) {
+  const id = generateUUID();
   await db`
-    INSERT INTO admin_events (event_type, body)
-    VALUES (${eventType}, ${body})
+    INSERT INTO admin_events (id, event_type, body)
+    VALUES (${id}, ${eventType}, ${body})
   `;
 }

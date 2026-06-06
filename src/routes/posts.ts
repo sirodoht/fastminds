@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { db } from "../db";
+import { db, generateUUID } from "../db";
 import { authMiddleware, optionalAuthMiddleware, verifiedEmailMiddleware, type AuthEnv } from "../middleware/auth";
 import { sendAdminEmail, logAdminEvent } from "../lib/email";
 import { validateUUID } from "../lib/validation";
@@ -43,7 +43,7 @@ posts.get("/", optionalAuthMiddleware, async (c) => {
   }
 
   const [countRow] = await db`
-    SELECT COUNT(*)::int AS total FROM posts WHERE archived_at IS NULL
+    SELECT COUNT(*) AS total FROM posts WHERE archived_at IS NULL
   `;
 
   const posts = rows.map((r) => {
@@ -128,9 +128,10 @@ posts.post("/", authMiddleware, verifiedEmailMiddleware, async (c) => {
     return c.json({ error: "Title is required" }, 400);
   }
 
+  const postId = generateUUID();
   const [post] = await db`
-    INSERT INTO posts (title, body, author_id)
-    VALUES (${title.trim()}, ${body || ""}, ${userId})
+    INSERT INTO posts (id, title, body, author_id)
+    VALUES (${postId}, ${title.trim()}, ${body || ""}, ${userId})
     RETURNING id, title, body, created_at
   `;
 
@@ -204,9 +205,10 @@ posts.post("/:id/updates", authMiddleware, verifiedEmailMiddleware, async (c) =>
     return c.json({ error: "Forbidden" }, 403);
   }
 
+  const updateId = generateUUID();
   const [update] = await db`
-    INSERT INTO post_updates (post_id, body)
-    VALUES (${id}, ${body.trim()})
+    INSERT INTO post_updates (id, post_id, body)
+    VALUES (${updateId}, ${id}, ${body.trim()})
     RETURNING id, body, created_at
   `;
 
@@ -223,9 +225,11 @@ posts.post("/:id/updates", authMiddleware, verifiedEmailMiddleware, async (c) =>
 
   for (const p of participants) {
     if (p.user_id) {
+      const notificationId = generateUUID();
       await db`
-        INSERT INTO notifications (user_id, actor_id, type, body, href)
+        INSERT INTO notifications (id, user_id, actor_id, type, body, href)
         VALUES (
+          ${notificationId},
           ${p.user_id},
           ${userId},
           ${"post:update"},
@@ -266,7 +270,7 @@ posts.post("/:id/archive", authMiddleware, async (c) => {
   }
 
   const [updated] = await db`
-    UPDATE posts SET archived_at = now() WHERE id = ${id}
+    UPDATE posts SET archived_at = datetime('now') WHERE id = ${id}
     RETURNING id, archived_at
   `;
 

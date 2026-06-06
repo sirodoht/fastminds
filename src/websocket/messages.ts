@@ -1,5 +1,5 @@
 import { verify } from "hono/jwt";
-import { db } from "../db";
+import { db, generateUUID } from "../db";
 import type { Server, ServerWebSocket } from "bun";
 
 export type MessageSocketData = {
@@ -166,9 +166,10 @@ export const messageWebSocketHandler = {
         return;
       }
 
+      const messageId = generateUUID();
       const [message] = await db`
-        INSERT INTO conversation_messages (conversation_id, sender_id, body)
-        VALUES (${conversationId}, ${ws.data.userId}, ${body})
+        INSERT INTO conversation_messages (id, conversation_id, sender_id, body)
+        VALUES (${messageId}, ${conversationId}, ${ws.data.userId}, ${body})
         RETURNING id, conversation_id, sender_id, body, created_at
       `;
 
@@ -176,9 +177,11 @@ export const messageWebSocketHandler = {
         ? conversation.recipient_id
         : conversation.initiator_id;
 
+      const notificationId = generateUUID();
       const [notification] = await db`
-        INSERT INTO notifications (user_id, actor_id, type, body, href)
+        INSERT INTO notifications (id, user_id, actor_id, type, body, href)
         VALUES (
+          ${notificationId},
           ${otherUserId},
           ${ws.data.userId},
           ${"conversation:message"},

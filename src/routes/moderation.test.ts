@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import { db } from "../db";
+import { db, generateUUID } from "../db";
 
 process.env.NODE_ENV = "test";
 process.env.JWT_SECRET = process.env.JWT_SECRET || "test-secret-key-for-testing-only";
@@ -8,18 +8,20 @@ const TEST_PORT = 3459;
 
 async function createUser(username: string, isAdmin = false) {
   const passwordHash = await Bun.password.hash("password123");
+  const userId = generateUUID();
   const [user] = await db`
-    INSERT INTO users (username, password_hash, email_verified, is_admin)
-    VALUES (${username}, ${passwordHash}, TRUE, ${isAdmin})
+    INSERT INTO users (id, username, password_hash, email_verified, is_admin)
+    VALUES (${userId}, ${username}, ${passwordHash}, TRUE, ${isAdmin})
     RETURNING id, username, is_admin
   `;
   return user;
 }
 
 async function createPost(title: string, body: string, authorId: string) {
+  const postId = generateUUID();
   const [post] = await db`
-    INSERT INTO posts (title, body, author_id)
-    VALUES (${title}, ${body}, ${authorId})
+    INSERT INTO posts (id, title, body, author_id)
+    VALUES (${postId}, ${title}, ${body}, ${authorId})
     RETURNING id, title, body, author_id
   `;
   return post;
@@ -212,15 +214,17 @@ describe("Moderation", () => {
 
   test("POST /api/moderation/report — reports a message", async () => {
     // Create a conversation between user and otherUser
+    const convId = generateUUID();
     const [conversation] = await db`
-      INSERT INTO conversations (post_id, initiator_id, recipient_id)
-      VALUES (${post.id}, ${user.id}, ${otherUser.id})
+      INSERT INTO conversations (id, post_id, initiator_id, recipient_id)
+      VALUES (${convId}, ${post.id}, ${user.id}, ${otherUser.id})
       RETURNING id
     `;
 
+    const msgId = generateUUID();
     const [message] = await db`
-      INSERT INTO conversation_messages (conversation_id, sender_id, body)
-      VALUES (${conversation.id}, ${otherUser.id}, 'A harassing message.')
+      INSERT INTO conversation_messages (id, conversation_id, sender_id, body)
+      VALUES (${msgId}, ${conversation.id}, ${otherUser.id}, 'A harassing message.')
       RETURNING id
     `;
 
@@ -244,15 +248,17 @@ describe("Moderation", () => {
 
   test("POST /api/moderation/report — rejects message report from non-participant", async () => {
     // Create a conversation between admin and otherUser
+    const convId = generateUUID();
     const [conversation] = await db`
-      INSERT INTO conversations (post_id, initiator_id, recipient_id)
-      VALUES (${post.id}, ${admin.id}, ${otherUser.id})
+      INSERT INTO conversations (id, post_id, initiator_id, recipient_id)
+      VALUES (${convId}, ${post.id}, ${admin.id}, ${otherUser.id})
       RETURNING id
     `;
 
+    const msgId = generateUUID();
     const [message] = await db`
-      INSERT INTO conversation_messages (conversation_id, sender_id, body)
-      VALUES (${conversation.id}, ${otherUser.id}, 'Another message.')
+      INSERT INTO conversation_messages (id, conversation_id, sender_id, body)
+      VALUES (${msgId}, ${conversation.id}, ${otherUser.id}, 'Another message.')
       RETURNING id
     `;
 

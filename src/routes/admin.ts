@@ -35,7 +35,7 @@ admin.get("/conversations", adminMiddleware, async (c) => {
       recipient.username AS recipient_username,
       last_messages.last_body,
       last_messages.last_created_at,
-      (SELECT COUNT(*)::int FROM conversation_messages WHERE conversation_id = conversations.id) AS message_count
+      (SELECT COUNT(*) FROM conversation_messages WHERE conversation_id = conversations.id) AS message_count
     FROM conversations
     JOIN posts ON conversations.post_id = posts.id
     JOIN users AS initiator ON conversations.initiator_id = initiator.id
@@ -45,7 +45,7 @@ admin.get("/conversations", adminMiddleware, async (c) => {
     LIMIT ${limit} OFFSET ${offset}
   `;
 
-  const [countRow] = await db`SELECT COUNT(*)::int AS total FROM conversations`;
+  const [countRow] = await db`SELECT COUNT(*) AS total FROM conversations`;
 
   const conversations = rows.map((row) => ({
     id: row.id,

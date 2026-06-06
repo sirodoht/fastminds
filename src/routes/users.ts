@@ -74,7 +74,7 @@ users.get("/:id/reputation", async (c) => {
 
   // Check visibility threshold
   const [feedbackCount] = await db`
-    SELECT COUNT(DISTINCT conversation_id)::int AS count
+    SELECT COUNT(DISTINCT conversation_id) AS count
     FROM conversation_feedback
     WHERE receiver_id = ${userId}
   `;
@@ -84,13 +84,13 @@ users.get("/:id/reputation", async (c) => {
   // Compute decayed labels
   const labelRows = await db`
     SELECT
-      label,
-      SUM(POWER(0.5, EXTRACT(EPOCH FROM (NOW() - created_at)) / 86400 / 365))::float AS decayed_points,
-      COUNT(*)::int AS raw_count
+      json_each.value AS label,
+      SUM(POWER(0.5, (julianday('now') - julianday(created_at)) / 365)) AS decayed_points,
+      COUNT(*) AS raw_count
     FROM conversation_feedback
-    CROSS JOIN UNNEST(labels) AS label
+    CROSS JOIN json_each(labels)
     WHERE receiver_id = ${userId}
-    GROUP BY label
+    GROUP BY json_each.value
   `;
 
   const positive: { label: string; decayedPoints: number; rawCount: number }[] = [];
@@ -142,24 +142,24 @@ users.get("/:id/stats", async (c) => {
   }
 
   const [conversationsRow] = await db`
-    SELECT COUNT(*)::int AS count FROM conversations
+    SELECT COUNT(*) AS count FROM conversations
     WHERE initiator_id = ${userId} OR recipient_id = ${userId}
   `;
 
   const [startedRow] = await db`
-    SELECT COUNT(*)::int AS count FROM conversations
+    SELECT COUNT(*) AS count FROM conversations
     WHERE initiator_id = ${userId}
   `;
 
   const [messagesSentRow] = await db`
-    SELECT COUNT(*)::int AS count FROM conversation_messages
+    SELECT COUNT(*) AS count FROM conversation_messages
     WHERE sender_id = ${userId}
   `;
 
   const [avgLengthRow] = await db`
-    SELECT AVG(message_count)::float AS avg
+    SELECT AVG(message_count) AS avg
     FROM (
-      SELECT COUNT(*)::int AS message_count
+      SELECT COUNT(*) AS message_count
       FROM conversation_messages
       GROUP BY conversation_id
       HAVING conversation_id IN (

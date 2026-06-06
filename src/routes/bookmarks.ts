@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { db } from "../db";
+import { db, generateUUID } from "../db";
 import { authMiddleware, type AuthEnv } from "../middleware/auth";
 import { validateUUID } from "../lib/validation";
 
@@ -58,14 +58,20 @@ bookmarks.post("/", async (c) => {
   }
 
   try {
+    const bookmarkId = generateUUID();
     const [bookmark] = await db`
-      INSERT INTO bookmarks (user_id, post_id)
-      VALUES (${userId}, ${postId})
+      INSERT INTO bookmarks (id, user_id, post_id)
+      VALUES (${bookmarkId}, ${userId}, ${postId})
       RETURNING id, post_id, created_at
     `;
     return c.json({ bookmark }, 201);
   } catch (err: any) {
-    if (err.errno === "23505" || err.code === "23505") {
+    if (
+      err.errno === "23505" ||
+      err.code === "23505" ||
+      err.code === "SQLITE_CONSTRAINT_UNIQUE" ||
+      (err.message && err.message.includes("UNIQUE constraint failed"))
+    ) {
       return c.json({ error: "Post is already bookmarked" }, 409);
     }
     throw err;
