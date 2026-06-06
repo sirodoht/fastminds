@@ -89,7 +89,7 @@ let canStartConversation = $derived($user && post && !post.archived_at && !isOwn
       <div class="post-main">
         <div class="post-title">{post.title}</div>
         <div class="post-meta">
-          <Link href="/profile/{post.author}">{post.author}</Link>
+          <span>{new Date(post.created_at).toLocaleString()}</span>
           {#if post.archived_at}
             <span class="archived-badge">Archived</span>
           {/if}

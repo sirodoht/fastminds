@@ -93,7 +93,7 @@ describe("End-to-end: Start conversation from post", () => {
     const { status, body } = await api(`/api/posts/${post.id}`, readerToken);
     expect(status).toBe(200);
     expect(body.post.id).toBe(post.id);
-    expect(body.post.author).toBe("e2e_author");
+    expect(body.post.created_at).toBeDefined();
     expect(body.post.archived_at).toBeNull();
   });
 

@@ -10,10 +10,8 @@ posts.get("/", async (c) => {
   const offset = (page - 1) * limit;
 
   const rows = await db`
-    SELECT posts.id, posts.title, posts.body, posts.score, posts.archived_at, posts.created_at,
-           users.username AS author
+    SELECT posts.id, posts.title, posts.body, posts.score, posts.archived_at, posts.created_at
     FROM posts
-    JOIN users ON posts.author_id = users.id
     ORDER BY posts.created_at DESC
     LIMIT ${limit} OFFSET ${offset}
   `;
@@ -38,10 +36,8 @@ posts.get("/:id", async (c) => {
   }
 
   const [post] = await db`
-    SELECT posts.id, posts.title, posts.body, posts.score, posts.archived_at, posts.created_at,
-           users.username AS author
+    SELECT posts.id, posts.title, posts.body, posts.score, posts.archived_at, posts.created_at
     FROM posts
-    JOIN users ON posts.author_id = users.id
     WHERE posts.id = ${id}
   `;
 
@@ -75,13 +71,7 @@ posts.post("/", authMiddleware, async (c) => {
     RETURNING id, title, body, score, created_at
   `;
 
-  const [user] = await db`
-    SELECT username FROM users WHERE id = ${userId}
-  `;
-
-  return c.json({
-    post: { ...post, author: user.username },
-  }, 201);
+  return c.json({ post }, 201);
 });
 
 // GET /api/posts/:id/updates
