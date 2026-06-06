@@ -727,6 +727,49 @@ a:visited {
 
 
 
+/* ──────── Pagination ──────── */
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 10px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+
+.pagination button {
+  padding: 5px 14px;
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.pagination button:hover:not(:disabled) {
+  background: var(--bg);
+  border-color: #aaa;
+}
+
+.pagination button:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+}
+
+.pagination .page-info {
+  font-size: .8rem;
+  color: var(--text-muted);
+  min-width: 80px;
+  text-align: center;
+}
+
 /* ──────── 404 ──────── */
 
 .not-found {

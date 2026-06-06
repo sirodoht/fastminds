@@ -5,14 +5,29 @@ import { authMiddleware, type AuthEnv } from "../middleware/auth";
 const posts = new Hono<AuthEnv>();
 
 posts.get("/", async (c) => {
+  const page = Math.max(1, parseInt(c.req.query("page") || "1", 10));
+  const limit = 20;
+  const offset = (page - 1) * limit;
+
   const rows = await db`
     SELECT posts.id, posts.title, posts.body, posts.score, posts.created_at,
            users.username AS author
     FROM posts
     JOIN users ON posts.author_id = users.id
     ORDER BY posts.created_at DESC
+    LIMIT ${limit} OFFSET ${offset}
   `;
-  return c.json({ posts: rows });
+
+  const [countRow] = await db`
+    SELECT COUNT(*)::int AS total FROM posts
+  `;
+
+  return c.json({
+    posts: rows,
+    page,
+    limit,
+    total: countRow.total,
+  });
 });
 
 posts.get("/:id", async (c) => {
