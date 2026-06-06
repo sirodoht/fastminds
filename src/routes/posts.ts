@@ -41,6 +41,7 @@ posts.get("/", async (c) => {
           WHERE bookmarks.user_id = ${userId} AND bookmarks.post_id = posts.id
         ) AS is_bookmarked
       FROM posts
+      WHERE posts.archived_at IS NULL
       ORDER BY posts.created_at DESC
       LIMIT ${limit} OFFSET ${offset}
     `;
@@ -48,13 +49,14 @@ posts.get("/", async (c) => {
     rows = await db`
       SELECT posts.id, posts.title, posts.body, posts.author_id, posts.archived_at, posts.created_at
       FROM posts
+      WHERE posts.archived_at IS NULL
       ORDER BY posts.created_at DESC
       LIMIT ${limit} OFFSET ${offset}
     `;
   }
 
   const [countRow] = await db`
-    SELECT COUNT(*)::int AS total FROM posts
+    SELECT COUNT(*)::int AS total FROM posts WHERE archived_at IS NULL
   `;
 
   return c.json({
@@ -238,6 +240,72 @@ posts.post("/:id/updates", authMiddleware, verifiedEmailMiddleware, async (c) =>
   }
 
   return c.json({ update }, 201);
+});
+
+// POST /api/posts/:id/archive — archive a post (author only)
+posts.post("/:id/archive", authMiddleware, async (c) => {
+  const userId = c.get("userId");
+  const id = c.req.param("id");
+
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+    return c.json({ error: "Post not found" }, 404);
+  }
+
+  const [post] = await db`
+    SELECT id, author_id, archived_at FROM posts WHERE id = ${id}
+  `;
+
+  if (!post) {
+    return c.json({ error: "Post not found" }, 404);
+  }
+
+  if (post.author_id !== userId) {
+    return c.json({ error: "Forbidden" }, 403);
+  }
+
+  if (post.archived_at) {
+    return c.json({ error: "Post is already archived" }, 400);
+  }
+
+  const [updated] = await db`
+    UPDATE posts SET archived_at = now() WHERE id = ${id}
+    RETURNING id, archived_at
+  `;
+
+  return c.json({ post: { id: updated.id, archivedAt: updated.archived_at } });
+});
+
+// POST /api/posts/:id/unarchive — unarchive a post (author only)
+posts.post("/:id/unarchive", authMiddleware, async (c) => {
+  const userId = c.get("userId");
+  const id = c.req.param("id");
+
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+    return c.json({ error: "Post not found" }, 404);
+  }
+
+  const [post] = await db`
+    SELECT id, author_id, archived_at FROM posts WHERE id = ${id}
+  `;
+
+  if (!post) {
+    return c.json({ error: "Post not found" }, 404);
+  }
+
+  if (post.author_id !== userId) {
+    return c.json({ error: "Forbidden" }, 403);
+  }
+
+  if (!post.archived_at) {
+    return c.json({ error: "Post is not archived" }, 400);
+  }
+
+  const [updated] = await db`
+    UPDATE posts SET archived_at = NULL WHERE id = ${id}
+    RETURNING id, archived_at
+  `;
+
+  return c.json({ post: { id: updated.id, archivedAt: updated.archived_at } });
 });
 
 export { posts as postsRoutes };

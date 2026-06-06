@@ -152,4 +152,41 @@ describe("End-to-end: Start conversation from post", () => {
     expect(status).toBe(200);
     expect(body.message.body).toBe("Thanks for your thoughtful response!");
   });
+
+  test("author archives their post", async () => {
+    const { status, body } = await api(`/api/posts/${post.id}/archive`, authorToken, {
+      method: "POST",
+    });
+    expect(status).toBe(200);
+    expect(body.post.archivedAt).toBeDefined();
+  });
+
+  test("archived post is hidden from feed", async () => {
+    const { status, body } = await api("/api/posts", readerToken);
+    expect(status).toBe(200);
+    expect(body.posts.some((p: any) => p.id === post.id)).toBe(false);
+  });
+
+  test("non-author cannot archive post", async () => {
+    const otherPost = await createPost("E2E Other Post", "body", reader.id);
+    const { status } = await api(`/api/posts/${otherPost.id}/archive`, authorToken, {
+      method: "POST",
+    });
+    expect(status).toBe(403);
+    await db`DELETE FROM posts WHERE id = ${otherPost.id}`;
+  });
+
+  test("author unarchives their post", async () => {
+    const { status, body } = await api(`/api/posts/${post.id}/unarchive`, authorToken, {
+      method: "POST",
+    });
+    expect(status).toBe(200);
+    expect(body.post.archivedAt).toBeNull();
+  });
+
+  test("unarchived post appears in feed again", async () => {
+    const { status, body } = await api("/api/posts", readerToken);
+    expect(status).toBe(200);
+    expect(body.posts.some((p: any) => p.id === post.id)).toBe(true);
+  });
 });

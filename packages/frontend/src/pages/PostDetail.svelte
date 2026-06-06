@@ -18,6 +18,7 @@ let firstMessage = $state("");
 let composerError = $state("");
 let composerLoading = $state(false);
 let reportOpen = $state(false);
+let archiveLoading = $state(false);
 
 async function fetchPost() {
   try {
@@ -56,6 +57,32 @@ async function fetchUpdates() {
     updates = data.updates;
   } catch {
     updates = [];
+  }
+}
+
+async function archivePost() {
+  if (!post || archiveLoading) return;
+  archiveLoading = true;
+  try {
+    await api(`/api/posts/${post.id}/archive`, { method: "POST" });
+    post.archived_at = new Date().toISOString();
+  } catch (err) {
+    alert(err.message || "Failed to archive post");
+  } finally {
+    archiveLoading = false;
+  }
+}
+
+async function unarchivePost() {
+  if (!post || archiveLoading) return;
+  archiveLoading = true;
+  try {
+    await api(`/api/posts/${post.id}/unarchive`, { method: "POST" });
+    post.archived_at = null;
+  } catch (err) {
+    alert(err.message || "Failed to unarchive post");
+  } finally {
+    archiveLoading = false;
   }
 }
 
@@ -189,7 +216,16 @@ let canStartConversation = $derived($user && post && !post.archived_at && !isOwn
           You already started a <Link href="/conversations/{post.conversationId}">conversation</Link> on this post.
         </p>
       {:else if isOwnPost}
-        <p class="text-muted">This is your post.</p>
+        {#if post.archived_at}
+          <p class="text-muted">This post is archived and hidden from the feed.</p>
+          <button class="btn-secondary" onclick={unarchivePost} disabled={archiveLoading}>
+            {archiveLoading ? "Unarchiving…" : "Unarchive"}
+          </button>
+        {:else}
+          <button class="btn-secondary" onclick={archivePost} disabled={archiveLoading}>
+            {archiveLoading ? "Archiving…" : "Archive"}
+          </button>
+        {/if}
       {:else if $user && !$user.emailVerified}
         <p class="text-muted">Please verify your email to start a conversation.</p>
       {:else}
