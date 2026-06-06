@@ -34,7 +34,7 @@
 <div class="form-card">
   <h1>Create an account</h1>
 
-  <p class="payment-intro">To verify you're a real person, we charge a one-time <strong>$1.00</strong> fee when you sign up. You'll be redirected to Stripe to complete the payment.</p>
+  <p class="payment-intro">To filter out fake accounts, we charge a one-time <strong>$1.00</strong> fee when you sign up. You'll be redirected to Stripe to complete the payment.</p>
 
   <form onsubmit={handleSubmit}>
     <div class="form-group">

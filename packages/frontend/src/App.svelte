@@ -167,8 +167,8 @@
               <li>No follower graph</li>
               <li>No algorithmic feed</li>
             </ul>
+            <p>A one-time $1 sign up fee is charged to filter out fake accounts.</p>
             {#if !$user}
-              <p class="sidebar-payment-note">A one-time <strong>$1.00</strong> fee is required to verify you're a real person.</p>
               <Link href="/register" class="btn-primary">Create Account</Link>
             {/if}
           </div>
