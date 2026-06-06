@@ -503,6 +503,9 @@ a:visited {
   text-decoration: none;
   transition: background .15s;
 }
+.btn-primary:visited {
+  color: var(--white);
+}
 
 .btn-primary:hover {
   background: var(--orange-light);

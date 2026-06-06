@@ -19,6 +19,7 @@
   import NewPost from "./pages/NewPost.svelte";
   import Login from "./pages/Login.svelte";
   import Register from "./pages/Register.svelte";
+  import RegisterSuccess from "./pages/RegisterSuccess.svelte";
   import VerifyEmail from "./pages/VerifyEmail.svelte";
   import NotFound from "./pages/NotFound.svelte";
   import ConversationSidebar from "./components/ConversationSidebar.svelte";
@@ -66,6 +67,7 @@
   "/new": NewPost,
     "/login": Login,
     "/register": Register,
+    "/register/success": RegisterSuccess,
     "/verify-email": VerifyEmail,
   }} fallback={NotFound}>
   {#snippet children(matched)}

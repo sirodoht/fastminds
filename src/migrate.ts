@@ -16,7 +16,20 @@ await db`ALTER TABLE users DROP COLUMN IF EXISTS display_name;`;
 
 await db`ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT UNIQUE;`;
 await db`ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN NOT NULL DEFAULT FALSE;`;
-await db`ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verification_token TEXT;`;
+await db`ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verification_token TEXT`;
+await db`ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_checkout_session_id TEXT UNIQUE;`;
+await db`ALTER TABLE users ADD COLUMN IF NOT EXISTS payment_verified BOOLEAN NOT NULL DEFAULT FALSE`;
+
+await db`
+  CREATE TABLE IF NOT EXISTS pending_registrations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    username TEXT NOT NULL,
+    email TEXT NOT NULL,
+    password_hash TEXT NOT NULL,
+    stripe_checkout_session_id TEXT UNIQUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  );
+`;
 
 await db`
   CREATE TABLE IF NOT EXISTS posts (

@@ -1,6 +1,5 @@
 <script>
-  import { Link, navigate } from "../router/index.js";
-  import { register } from "../lib/stores.js";
+  import { Link } from "../router/index.js";
 
   let username = $state("");
   let email = $state("");
@@ -12,12 +11,21 @@
     e.preventDefault();
     error = "";
     loading = true;
+
     try {
-      await register(username, password, email);
-      navigate("/");
+      const res = await fetch("/api/auth/register/checkout-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, email, password }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || `Request failed (${res.status})`);
+      }
+      const data = await res.json();
+      window.location.href = data.url;
     } catch (err) {
       error = err.message;
-    } finally {
       loading = false;
     }
   }
@@ -25,6 +33,8 @@
 
 <div class="form-card">
   <h1>Create an account</h1>
+
+  <p class="payment-intro">To verify you're a real person, we charge a one-time <strong>$1.00</strong> fee when you sign up. You'll be redirected to Stripe to complete the payment.</p>
 
   <form onsubmit={handleSubmit}>
     <div class="form-group">
@@ -47,7 +57,7 @@
     {/if}
 
     <button type="submit" class="btn-primary" disabled={loading}>
-      {loading ? "Registering…" : "Register"}
+      {loading ? "Redirecting to Stripe…" : "Continue to Stripe payment"}
     </button>
   </form>
 
@@ -55,3 +65,11 @@
     Already have an account? <Link href="/login">Log in</Link>
   </div>
 </div>
+
+<style>
+  .payment-intro {
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+    color: #444;
+  }
+</style>

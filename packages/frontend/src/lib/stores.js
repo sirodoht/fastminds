@@ -27,10 +27,10 @@ export async function login(username, password) {
   return data;
 }
 
-export async function register(username, password, email) {
-  const data = await api("/api/auth/register", {
+export async function register(sessionId) {
+  const data = await api("/api/auth/register/complete", {
     method: "POST",
-    body: JSON.stringify({ username, password, email }),
+    body: JSON.stringify({ sessionId }),
   });
   token.set(data.token);
   user.set(data.user);
