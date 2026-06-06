@@ -812,11 +812,13 @@ const usersByUsername = new Map<string, string>();
 
 for (const username of fakeUsers) {
   const email = `${username}@fastminds.local`;
+  const isAdmin = username === "socrates";
   const [user] = await db`
-    INSERT INTO users (username, password_hash, email, email_verified)
-    VALUES (${username}, ${passwordHash}, ${email}, TRUE)
+    INSERT INTO users (username, password_hash, email, email_verified, is_admin)
+    VALUES (${username}, ${passwordHash}, ${email}, TRUE, ${isAdmin})
     ON CONFLICT (username) DO UPDATE
-      SET username = EXCLUDED.username
+      SET username = EXCLUDED.username,
+          is_admin = EXCLUDED.is_admin
     RETURNING id, username
   `;
 

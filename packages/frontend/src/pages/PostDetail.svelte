@@ -4,6 +4,7 @@ import { navigate } from "../router/index.js";
 import Link from "../router/Link.svelte";
 import { api } from "../lib/api.js";
 import { user } from "../lib/stores.js";
+import ReportModal from "../components/ReportModal.svelte";
 
 let { params } = $props();
 
@@ -16,6 +17,7 @@ let showComposer = $state(false);
 let firstMessage = $state("");
 let composerError = $state("");
 let composerLoading = $state(false);
+let reportOpen = $state(false);
 
 async function fetchPost() {
   try {
@@ -125,6 +127,15 @@ let canStartConversation = $derived($user && post && !post.archived_at && !isOwn
             >
               {post.isBookmarked ? "★" : "☆"}
             </button>
+            {#if !isOwnPost}
+              <button
+                class="report-btn-inline"
+                title="Report post"
+                onclick={() => reportOpen = true}
+              >
+                ⚑
+              </button>
+            {/if}
           {/if}
         </div>
       </div>
@@ -187,6 +198,8 @@ let canStartConversation = $derived($user && post && !post.archived_at && !isOwn
     </div>
   </div>
 {/if}
+
+<ReportModal bind:open={reportOpen} targetType="post" targetId={params.id} />
 
 <style>
   .post-updates {
@@ -252,5 +265,20 @@ let canStartConversation = $derived($user && post && !post.archived_at && !isOwn
   }
   .bookmark-btn-inline.active:hover {
     color: var(--text-meta);
+  }
+  .report-btn-inline {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text-meta);
+    padding: 0 4px;
+    margin-left: 6px;
+    line-height: 1;
+    vertical-align: middle;
+    transition: color 0.15s;
+  }
+  .report-btn-inline:hover {
+    color: var(--orange);
   }
 </style>

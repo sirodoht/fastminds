@@ -105,6 +105,7 @@ a:visited {
   border: none;
   cursor: pointer;
   transition: background .15s;
+  white-space: nowrap;
 }
 
 .header-nav a:visited {
@@ -999,6 +1000,12 @@ a:visited {
 }
 
 /* ──────── Responsive ──────── */
+
+@media (max-width: 480px) {
+  .header-logo {
+    display: none;
+  }
+}
 
 @media (max-width: 720px) {
   .sidebar {

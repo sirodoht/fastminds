@@ -19,6 +19,7 @@ await db`ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN NOT N
 await db`ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verification_token TEXT`;
 await db`ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_checkout_session_id TEXT UNIQUE;`;
 await db`ALTER TABLE users ADD COLUMN IF NOT EXISTS payment_verified BOOLEAN NOT NULL DEFAULT FALSE`;
+await db`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN NOT NULL DEFAULT FALSE`;
 
 await db`
   CREATE TABLE IF NOT EXISTS pending_registrations (
@@ -169,5 +170,44 @@ await db`
   ON bookmarks (user_id, created_at DESC);
 `;
 
-console.log("Migration complete: users, posts, conversations, conversation_messages, post_updates, notifications, conversation_feedback, admin_events, and bookmarks tables ready");
+await db`
+  CREATE TABLE IF NOT EXISTS reports (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    reporter_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    target_type TEXT NOT NULL CHECK (target_type IN ('post', 'message', 'account')),
+    target_id TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    details TEXT DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'resolved')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  );
+`;
+
+await db`
+  CREATE INDEX IF NOT EXISTS reports_status_created_at_idx
+  ON reports (status, created_at DESC);
+`;
+
+await db`
+  CREATE INDEX IF NOT EXISTS reports_target_idx
+  ON reports (target_type, target_id);
+`;
+
+await db`
+  CREATE TABLE IF NOT EXISTS moderation_actions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    report_id UUID NOT NULL REFERENCES reports(id) ON DELETE CASCADE,
+    moderator_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    action_type TEXT NOT NULL CHECK (action_type IN ('warning', 'suspend', 'ban', 'content_removed', 'content_hidden', 'no_action')),
+    note TEXT DEFAULT '',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  );
+`;
+
+await db`
+  CREATE INDEX IF NOT EXISTS moderation_actions_report_idx
+  ON moderation_actions (report_id);
+`;
+
+console.log("Migration complete: users, posts, conversations, conversation_messages, post_updates, notifications, conversation_feedback, admin_events, bookmarks, reports, and moderation_actions tables ready");
 process.exit(0);
