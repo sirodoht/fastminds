@@ -159,6 +159,45 @@ describe("Conversations", () => {
     expect(body.error).toContain("own post");
   });
 
+  test("POST /api/conversations/from-post/:id — rejects duplicate conversation on same post", async () => {
+    // Create a fresh post for this test
+    const [freshPost] = await db`
+      INSERT INTO posts (title, body, author_id)
+      VALUES (${"TEST Duplicate"}, ${"body"}, ${userA.id})
+      RETURNING id
+    `;
+
+    // First conversation succeeds
+    const { status: status1 } = await api(
+      `/api/conversations/from-post/${freshPost.id}`,
+      tokenB,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          body: "A thoughtful and substantial response to this test post.",
+        }),
+      }
+    );
+    expect(status1).toBe(201);
+
+    // Second conversation on same post fails
+    const { status: status2, body: body2 } = await api(
+      `/api/conversations/from-post/${freshPost.id}`,
+      tokenB,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          body: "Another thoughtful response to the same post.",
+        }),
+      }
+    );
+    expect(status2).toBe(409);
+    expect(body2.error).toContain("already started");
+
+    await db`DELETE FROM conversations WHERE post_id = ${freshPost.id}`;
+    await db`DELETE FROM posts WHERE id = ${freshPost.id}`;
+  });
+
   test("POST /api/conversations/from-post/:id — rejects archived post", async () => {
     const [archivedPost] = await db`
       INSERT INTO posts (title, body, author_id, archived_at)
@@ -184,23 +223,34 @@ describe("Conversations", () => {
   });
 
   test("POST /api/conversations/from-post/:id — enforces daily limit", async () => {
-    // Create a fresh post for this test
-    const [freshPost] = await db`
-      INSERT INTO posts (title, body, author_id)
-      VALUES (${"TEST Daily Limit"}, ${"body"}, ${userA.id})
-      RETURNING id
-    `;
+    // Create 10 fresh posts for this test
+    const freshPosts = [];
+    for (let i = 0; i < 10; i++) {
+      const [p] = await db`
+        INSERT INTO posts (title, body, author_id)
+        VALUES (${`TEST Daily Limit ${i}`}, ${"body"}, ${userA.id})
+        RETURNING id
+      `;
+      freshPosts.push(p.id);
+    }
 
-    // Create 10 conversations today
+    // Create 10 conversations today on different posts
     for (let i = 0; i < 10; i++) {
       await db`
         INSERT INTO conversations (post_id, initiator_id, recipient_id)
-        VALUES (${freshPost.id}, ${userB.id}, ${userA.id})
+        VALUES (${freshPosts[i]}, ${userB.id}, ${userA.id})
       `;
     }
 
+    // Try to start an 11th conversation on a new post
+    const [eleventhPost] = await db`
+      INSERT INTO posts (title, body, author_id)
+      VALUES (${"TEST Daily Limit 11"}, ${"body"}, ${userA.id})
+      RETURNING id
+    `;
+
     const { status, body } = await api(
-      `/api/conversations/from-post/${freshPost.id}`,
+      `/api/conversations/from-post/${eleventhPost.id}`,
       tokenB,
       {
         method: "POST",
@@ -213,14 +263,21 @@ describe("Conversations", () => {
     expect(status).toBe(429);
     expect(body.error).toContain("daily limit");
 
-    await db`DELETE FROM conversations WHERE post_id = ${freshPost.id}`;
-    await db`DELETE FROM posts WHERE id = ${freshPost.id}`;
+    await db`DELETE FROM conversations WHERE post_id IN ${db(freshPosts)}`;
+    await db`DELETE FROM posts WHERE id IN ${db(freshPosts)} OR id = ${eleventhPost.id}`;
   });
 
   test("GET /api/conversations/:id — returns conversation with blind phase", async () => {
+    // Create a fresh post for this test
+    const [freshPost] = await db`
+      INSERT INTO posts (title, body, author_id)
+      VALUES (${"TEST Blind Phase"}, ${"body"}, ${userA.id})
+      RETURNING id
+    `;
+
     // Start a conversation
     const { body: createBody } = await api(
-      `/api/conversations/from-post/${post.id}`,
+      `/api/conversations/from-post/${freshPost.id}`,
       tokenB,
       {
         method: "POST",
@@ -247,12 +304,24 @@ describe("Conversations", () => {
     expect(body2.conversation.revealed).toBe(false);
     expect(body2.messages[0].senderUsername).toBeNull();
     expect(body2.messages[0].isMine).toBe(false);
+
+    // Cleanup
+    await db`DELETE FROM conversation_messages WHERE conversation_id = ${convId}`;
+    await db`DELETE FROM conversations WHERE id = ${convId}`;
+    await db`DELETE FROM posts WHERE id = ${freshPost.id}`;
   });
 
   test("POST /api/conversations/:id/messages — sends messages and triggers reveal at 10", async () => {
+    // Create a fresh post for this test
+    const [freshPost] = await db`
+      INSERT INTO posts (title, body, author_id)
+      VALUES (${"TEST Reveal"}, ${"body"}, ${userA.id})
+      RETURNING id
+    `;
+
     // Start a conversation
     const { body: createBody } = await api(
-      `/api/conversations/from-post/${post.id}`,
+      `/api/conversations/from-post/${freshPost.id}`,
       tokenB,
       {
         method: "POST",
@@ -290,6 +359,11 @@ describe("Conversations", () => {
     expect(after.conversation.revealed).toBe(true);
     expect(after.messages[0].senderUsername).toBeDefined();
     expect(after.messages[0].senderUsername).not.toBeNull();
+
+    // Cleanup
+    await db`DELETE FROM conversation_messages WHERE conversation_id = ${convId}`;
+    await db`DELETE FROM conversations WHERE id = ${convId}`;
+    await db`DELETE FROM posts WHERE id = ${freshPost.id}`;
   });
 
   test("GET /api/conversations — lists user's conversations", async () => {

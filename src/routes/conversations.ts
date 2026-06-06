@@ -43,6 +43,17 @@ conversations.post("/from-post/:id", async (c) => {
     return c.json({ error: "You cannot start a conversation on your own post" }, 400);
   }
 
+  // One conversation per post per user
+  const [existingConversation] = await db`
+    SELECT id FROM conversations
+    WHERE post_id = ${postId} AND initiator_id = ${userId}
+    LIMIT 1
+  `;
+
+  if (existingConversation) {
+    return c.json({ error: "You already started a conversation on this post" }, 409);
+  }
+
   // Daily limit: max 10 new conversations per day
   const [dailyCount] = await db`
     SELECT COUNT(*)::int AS count FROM conversations

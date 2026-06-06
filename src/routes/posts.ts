@@ -1,8 +1,22 @@
 import { Hono } from "hono";
+import { verify } from "hono/jwt";
 import { db } from "../db";
 import { authMiddleware, type AuthEnv } from "../middleware/auth";
 
 const posts = new Hono<AuthEnv>();
+
+async function optionalUserId(c: any): Promise<string | null> {
+  const authHeader = c.req.header("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) return null;
+  try {
+    const token = authHeader.slice(7);
+    const secret = process.env.JWT_SECRET!;
+    const payload = await verify(token, secret, "HS256");
+    return payload.sub as string;
+  } catch {
+    return null;
+  }
+}
 
 posts.get("/", async (c) => {
   const page = Math.max(1, parseInt(c.req.query("page") || "1", 10));
@@ -49,10 +63,28 @@ posts.get("/:id", async (c) => {
     SELECT COUNT(*)::int AS count FROM conversations WHERE post_id = ${id}
   `;
 
+  const userId = await optionalUserId(c);
+  let hasStartedConversation = false;
+  let conversationId = null;
+
+  if (userId) {
+    const [existing] = await db`
+      SELECT id FROM conversations
+      WHERE post_id = ${id} AND initiator_id = ${userId}
+      LIMIT 1
+    `;
+    if (existing) {
+      hasStartedConversation = true;
+      conversationId = existing.id;
+    }
+  }
+
   return c.json({
     post: {
       ...post,
       conversationCount: conversationCount.count,
+      hasStartedConversation,
+      conversationId,
     },
   });
 });

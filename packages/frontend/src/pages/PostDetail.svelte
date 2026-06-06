@@ -70,7 +70,8 @@ async function startConversation(e) {
 }
 
 let isOwnPost = $derived($user && post && $user.id === post.author_id);
-let canStartConversation = $derived($user && post && !post.archived_at && !isOwnPost);
+let hasStartedConversation = $derived(post?.hasStartedConversation ?? false);
+let canStartConversation = $derived($user && post && !post.archived_at && !isOwnPost && !hasStartedConversation);
 </script>
 
 {#if loading}
@@ -140,6 +141,10 @@ let canStartConversation = $derived($user && post && !post.archived_at && !isOwn
         {/if}
       {:else if post.archived_at}
         <p class="text-muted">This post is archived and no longer accepts new conversations.</p>
+      {:else if hasStartedConversation}
+        <p class="text-muted">
+          You already started a <Link href="/conversations/{post.conversationId}">conversation</Link> on this post.
+        </p>
       {:else if isOwnPost}
         <p class="text-muted">This is your post.</p>
       {:else}
