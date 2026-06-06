@@ -1,6 +1,7 @@
 :root {
   --orange: #ff4500;
   --orange-light: #ff6a33;
+  --accent: var(--orange);
   --blue: #3366cc;
   --blue-link: #0000ee;
   --blue-visited: #551a8b;

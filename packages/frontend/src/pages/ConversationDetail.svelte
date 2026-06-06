@@ -248,7 +248,8 @@ function handleComposerKeydown(e) {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
+    width: 100%;
   }
   .message-group.mine {
     align-items: flex-end;
@@ -275,6 +276,7 @@ function handleComposerKeydown(e) {
     background: var(--accent);
     color: white;
     border-color: var(--accent);
+    margin-left: auto;
   }
   .message-body {
     white-space: pre-wrap;
