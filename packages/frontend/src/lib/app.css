@@ -248,7 +248,8 @@ a:visited {
 }
 
 .dropdown-menu a.admin-link:hover {
-  background: var(--orange-light);
+  background: var(--orange);
+  color: var(--white);
 }
 
 /* ──────── Layout ──────── */
