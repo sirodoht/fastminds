@@ -1,21 +1,7 @@
 import { db } from "./db";
 
-// Drop old tables if they exist (no CASCADE in SQLite)
-await db`DROP TABLE IF EXISTS moderation_actions`;
-await db`DROP TABLE IF EXISTS reports`;
-await db`DROP TABLE IF EXISTS bookmarks`;
-await db`DROP TABLE IF EXISTS admin_events`;
-await db`DROP TABLE IF EXISTS conversation_feedback`;
-await db`DROP TABLE IF EXISTS notifications`;
-await db`DROP TABLE IF EXISTS post_updates`;
-await db`DROP TABLE IF EXISTS conversation_messages`;
-await db`DROP TABLE IF EXISTS conversations`;
-await db`DROP TABLE IF EXISTS posts`;
-await db`DROP TABLE IF EXISTS pending_registrations`;
-await db`DROP TABLE IF EXISTS users`;
-
 await db`
-  CREATE TABLE users (
+  CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
     username TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
@@ -30,7 +16,7 @@ await db`
 `;
 
 await db`
-  CREATE TABLE pending_registrations (
+  CREATE TABLE IF NOT EXISTS pending_registrations (
     id TEXT PRIMARY KEY,
     username TEXT NOT NULL,
     email TEXT NOT NULL,
@@ -41,7 +27,7 @@ await db`
 `;
 
 await db`
-  CREATE TABLE posts (
+  CREATE TABLE IF NOT EXISTS posts (
     id TEXT PRIMARY KEY,
     title TEXT NOT NULL,
     body TEXT DEFAULT '',
@@ -52,7 +38,7 @@ await db`
 `;
 
 await db`
-  CREATE TABLE conversations (
+  CREATE TABLE IF NOT EXISTS conversations (
     id TEXT PRIMARY KEY,
     post_id TEXT NOT NULL REFERENCES posts(id),
     initiator_id TEXT NOT NULL REFERENCES users(id),
@@ -62,17 +48,17 @@ await db`
 `;
 
 await db`
-  CREATE INDEX conversations_initiator_created_at_idx
+  CREATE INDEX IF NOT EXISTS conversations_initiator_created_at_idx
   ON conversations (initiator_id, created_at DESC);
 `;
 
 await db`
-  CREATE INDEX conversations_participants_idx
+  CREATE INDEX IF NOT EXISTS conversations_participants_idx
   ON conversations (initiator_id, recipient_id);
 `;
 
 await db`
-  CREATE TABLE conversation_messages (
+  CREATE TABLE IF NOT EXISTS conversation_messages (
     id TEXT PRIMARY KEY,
     conversation_id TEXT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
     sender_id TEXT NOT NULL REFERENCES users(id),
@@ -82,12 +68,12 @@ await db`
 `;
 
 await db`
-  CREATE INDEX conversation_messages_conversation_created_at_idx
+  CREATE INDEX IF NOT EXISTS conversation_messages_conversation_created_at_idx
   ON conversation_messages (conversation_id, created_at ASC);
 `;
 
 await db`
-  CREATE TABLE post_updates (
+  CREATE TABLE IF NOT EXISTS post_updates (
     id TEXT PRIMARY KEY,
     post_id TEXT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
     body TEXT NOT NULL,
@@ -96,12 +82,12 @@ await db`
 `;
 
 await db`
-  CREATE INDEX post_updates_post_id_idx
+  CREATE INDEX IF NOT EXISTS post_updates_post_id_idx
   ON post_updates (post_id, created_at ASC);
 `;
 
 await db`
-  CREATE TABLE notifications (
+  CREATE TABLE IF NOT EXISTS notifications (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     actor_id TEXT REFERENCES users(id) ON DELETE SET NULL,
@@ -114,18 +100,18 @@ await db`
 `;
 
 await db`
-  CREATE INDEX notifications_user_created_at_idx
+  CREATE INDEX IF NOT EXISTS notifications_user_created_at_idx
   ON notifications (user_id, created_at DESC);
 `;
 
 await db`
-  CREATE INDEX notifications_user_unread_idx
+  CREATE INDEX IF NOT EXISTS notifications_user_unread_idx
   ON notifications (user_id)
   WHERE read_at IS NULL;
 `;
 
 await db`
-  CREATE TABLE conversation_feedback (
+  CREATE TABLE IF NOT EXISTS conversation_feedback (
     id TEXT PRIMARY KEY,
     conversation_id TEXT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
     giver_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -138,12 +124,12 @@ await db`
 `;
 
 await db`
-  CREATE INDEX conversation_feedback_receiver_idx
+  CREATE INDEX IF NOT EXISTS conversation_feedback_receiver_idx
   ON conversation_feedback (receiver_id, created_at);
 `;
 
 await db`
-  CREATE TABLE admin_events (
+  CREATE TABLE IF NOT EXISTS admin_events (
     id TEXT PRIMARY KEY,
     event_type TEXT NOT NULL,
     body TEXT NOT NULL,
@@ -152,12 +138,12 @@ await db`
 `;
 
 await db`
-  CREATE INDEX admin_events_type_created_at_idx
+  CREATE INDEX IF NOT EXISTS admin_events_type_created_at_idx
   ON admin_events (event_type, created_at DESC);
 `;
 
 await db`
-  CREATE TABLE bookmarks (
+  CREATE TABLE IF NOT EXISTS bookmarks (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     post_id TEXT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
@@ -167,12 +153,12 @@ await db`
 `;
 
 await db`
-  CREATE INDEX bookmarks_user_created_at_idx
+  CREATE INDEX IF NOT EXISTS bookmarks_user_created_at_idx
   ON bookmarks (user_id, created_at DESC);
 `;
 
 await db`
-  CREATE TABLE reports (
+  CREATE TABLE IF NOT EXISTS reports (
     id TEXT PRIMARY KEY,
     reporter_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     target_type TEXT NOT NULL CHECK (target_type IN ('post', 'message', 'account')),
@@ -185,17 +171,17 @@ await db`
 `;
 
 await db`
-  CREATE INDEX reports_status_created_at_idx
+  CREATE INDEX IF NOT EXISTS reports_status_created_at_idx
   ON reports (status, created_at DESC);
 `;
 
 await db`
-  CREATE INDEX reports_target_idx
+  CREATE INDEX IF NOT EXISTS reports_target_idx
   ON reports (target_type, target_id);
 `;
 
 await db`
-  CREATE TABLE moderation_actions (
+  CREATE TABLE IF NOT EXISTS moderation_actions (
     id TEXT PRIMARY KEY,
     report_id TEXT NOT NULL REFERENCES reports(id) ON DELETE CASCADE,
     moderator_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -206,7 +192,7 @@ await db`
 `;
 
 await db`
-  CREATE INDEX moderation_actions_report_idx
+  CREATE INDEX IF NOT EXISTS moderation_actions_report_idx
   ON moderation_actions (report_id);
 `;
 
