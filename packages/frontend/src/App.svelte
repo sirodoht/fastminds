@@ -95,9 +95,9 @@
       </div>
     </header>
 
-    <div class="layout" class:messages-layout={matched?.key?.startsWith('/conversations')}>
+    <div class="layout" class:messages-layout={matched?.key?.startsWith('/conversations/')}>
       <main class="content">
-        {#if matched?.key?.startsWith('/conversations')}
+        {#if matched?.key?.startsWith('/conversations/')}
           <div class="messages-wrapper">
             <ConversationSidebar currentPath={matched.key} />
             <div class="messages-main">
