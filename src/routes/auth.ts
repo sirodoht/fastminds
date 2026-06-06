@@ -385,4 +385,44 @@ auth.post("/change-email", authMiddleware, async (c) => {
   return c.json({ success: true });
 });
 
+auth.delete("/account", authMiddleware, async (c) => {
+  const { password } = await c.req.json();
+
+  if (!password) {
+    return c.json({ error: "password is required" }, 400);
+  }
+
+  const userId = c.get("userId");
+  const [user] = await db`
+    SELECT id, username, password_hash FROM users WHERE id = ${userId}
+  `;
+  if (!user) {
+    return c.json({ error: "User not found" }, 404);
+  }
+
+  const valid = await Bun.password.verify(password, user.password_hash);
+  if (!valid) {
+    return c.json({ error: "Incorrect password" }, 401);
+  }
+
+  let [deletedUser] = await db`SELECT id FROM users WHERE username = '[deleted]'`;
+  if (!deletedUser) {
+    const deletedPasswordHash = await Bun.password.hash(generateToken());
+    [deletedUser] = await db`
+      INSERT INTO users (username, password_hash, email, email_verified, payment_verified)
+      VALUES ('[deleted]', ${deletedPasswordHash}, NULL, FALSE, TRUE)
+      RETURNING id
+    `;
+  }
+
+  await db`UPDATE posts SET author_id = ${deletedUser.id} WHERE author_id = ${userId}`;
+  await db`UPDATE conversations SET initiator_id = ${deletedUser.id} WHERE initiator_id = ${userId}`;
+  await db`UPDATE conversations SET recipient_id = ${deletedUser.id} WHERE recipient_id = ${userId}`;
+  await db`UPDATE conversation_messages SET sender_id = ${deletedUser.id} WHERE sender_id = ${userId}`;
+
+  await db`DELETE FROM users WHERE id = ${userId}`;
+
+  return c.json({ success: true });
+});
+
 export { auth as authRoutes };

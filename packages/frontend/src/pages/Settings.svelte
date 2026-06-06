@@ -1,5 +1,7 @@
 <script>
   import { api } from "../lib/api.js";
+  import { logout } from "../lib/stores.js";
+  import { navigate } from "../router/index.js";
 
   let oldPassword = $state("");
   let newPassword = $state("");
@@ -14,6 +16,12 @@
   let emailSuccess = $state("");
   let emailLoading = $state(false);
   let emailFormEl;
+
+  let deletePassword = $state("");
+  let deleteConfirm = $state("");
+  let deleteError = $state("");
+  let deleteLoading = $state(false);
+  let deleteFormEl;
 
   function handlePasswordKeydown(e) {
     if (e.key === "Enter") {
@@ -73,6 +81,30 @@
       emailLoading = false;
     }
   }
+
+  function handleDeleteKeydown(e) {
+    if (e.key === "Enter") {
+      deleteFormEl.requestSubmit();
+    }
+  }
+
+  async function handleDeleteSubmit(e) {
+    e.preventDefault();
+    deleteError = "";
+
+    deleteLoading = true;
+    try {
+      await api("/api/auth/account", {
+        method: "DELETE",
+        body: JSON.stringify({ password: deletePassword }),
+      });
+      logout();
+      navigate("/");
+    } catch (err) {
+      deleteError = err.message;
+      deleteLoading = false;
+    }
+  }
 </script>
 
 <div class="form-card">
@@ -129,6 +161,32 @@
 
     <button type="submit" class="btn-primary" disabled={emailLoading}>
       {emailLoading ? "Saving…" : "Change email"}
+    </button>
+  </form>
+
+  <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border-color);" />
+
+  <h2 style="margin-bottom: 1rem; font-size: 1.1rem; color: #dc2626;">Delete account</h2>
+
+  <p style="font-size: 0.9rem; color: #444; margin-bottom: 1rem;">This will permanently delete your account. Your posts will remain but be attributed to a deleted user. Your direct messages and feedback will be removed.</p>
+
+  <form bind:this={deleteFormEl} onsubmit={handleDeleteSubmit}>
+    <div class="form-group">
+      <label for="delete-password">Current password</label>
+      <input id="delete-password" type="password" bind:value={deletePassword} placeholder="current password" required onkeydown={handleDeleteKeydown} />
+    </div>
+
+    <div class="form-group">
+      <label for="delete-confirm">Type "delete" to confirm</label>
+      <input id="delete-confirm" type="text" bind:value={deleteConfirm} placeholder="delete" required onkeydown={handleDeleteKeydown} />
+    </div>
+
+    {#if deleteError}
+      <p class="form-error">{deleteError}</p>
+    {/if}
+
+    <button type="submit" class="btn-danger" disabled={deleteLoading || deleteConfirm !== "delete"}>
+      {deleteLoading ? "Deleting…" : "Delete account"}
     </button>
   </form>
 </div>
