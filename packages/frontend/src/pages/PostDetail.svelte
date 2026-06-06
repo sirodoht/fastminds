@@ -201,9 +201,6 @@ let canStartConversation = $derived($user && post && !post.archived_at && !isOwn
               <p class="form-error">{composerError}</p>
             {/if}
             <div class="composer-actions">
-              <button type="button" class="btn-secondary" onclick={() => { showComposer = false; firstMessage = ""; composerError = ""; }}>
-                Cancel
-              </button>
               <button type="submit" class="btn-primary" disabled={composerLoading}>
                 {composerLoading ? "Starting…" : "Start conversation"}
               </button>
