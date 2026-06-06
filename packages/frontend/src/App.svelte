@@ -107,8 +107,8 @@
       <aside class="sidebar">
         <div class="sidebar-card">
           <h3>fastminds</h3>
-          <p>Questions, arguments, paradoxes, and challenges from the community.</p>
-          <p>Share your thoughts, challenge your mind.</p>
+          <p>Discover ideas. Start conversations. Reveal who you're talking to only after 10 messages.</p>
+          <p>No followers. No likes. No algorithmic feed. Just ideas and the people who respond to them.</p>
           {#if !$user}
             <Link href="/register" class="btn-primary">Create Account</Link>
           {/if}
