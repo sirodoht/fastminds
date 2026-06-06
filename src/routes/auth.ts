@@ -32,7 +32,7 @@ async function sendVerificationEmail(userId: string, email: string) {
     to: email,
     subject: "Verify your email — fastminds",
     text: `Welcome to fastminds!\n\nPlease verify your email by clicking this link:\n${url}\n\nThis link will expire when you request a new one.`,
-    html: `<p>Welcome to fastminds!</p><p>Please verify your email by clicking <a href="${url}">this link</a>.</p><p>This link will expire when you request a new one.</p>`,
+    html: `<p>Welcome to fastminds!</p><p>Please verify your email by clicking <a href="${url}">this link</a>.</p><p style="word-break:break-all;">${url}</p><p>This link will expire when you request a new one.</p>`,
   });
 }
 
