@@ -235,7 +235,7 @@ function handleComposerKeydown(e) {
     border-radius: 4px;
   }
   .blind-banner {
-    padding: 12px 16px;
+    padding: 8px 12px;
     background: var(--bg-secondary);
     border-bottom: 1px solid var(--border);
     text-align: center;
@@ -246,7 +246,7 @@ function handleComposerKeydown(e) {
     margin: 0;
   }
   .reveal-banner {
-    padding: 12px 16px;
+    padding: 8px 12px;
     background: rgba(34, 197, 94, 0.1);
     border-bottom: 1px solid rgba(34, 197, 94, 0.2);
     text-align: center;
@@ -256,6 +256,9 @@ function handleComposerKeydown(e) {
   }
   .reveal-banner p {
     margin: 0;
+  }
+  .message-thread {
+    padding: 12px;
   }
   .message-group {
     display: flex;
