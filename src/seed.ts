@@ -1,87 +1,810 @@
 import { db } from "./db";
 
 const fakeUsers = [
-  "socrates",
-  "hypatia",
-  "ada",
-  "tesla",
-  "octavia",
-  "borges",
-  "curie",
-  "turing",
+  "socrates", "hypatia", "ada", "tesla", "octavia", "borges", "curie", "turing",
+  "nietzsche", "simone", "godel", "ramanujan", "pessoa", "ginsberg", "vonnegut",
+  "montaigne", "galileo", "kierkegaard", "austen", "davinci", "shannon",
+  "maxwell", "poincare", "hilbert", "cicero",
 ];
 
 const fakePosts = [
   {
     author: "socrates",
     title: "What belief have you changed your mind about recently?",
-    body: "Not the loudest reversal — the most useful one.",
-    score: 14,
+    body: "Not the loudest reversal — the most useful one. I find that the quiet shifts matter more than the dramatic ones.",
     hoursAgo: 3,
   },
   {
     author: "hypatia",
     title: "Is a good question more valuable than a fast answer?",
-    body: "I keep noticing that the shape of the question decides almost everything downstream.",
-    score: 21,
+    body: "I keep noticing that the shape of the question decides almost everything downstream. A poorly framed question can waste years.",
     hoursAgo: 6,
   },
   {
     author: "ada",
     title: "Small systems can still have elegant architecture",
     body: "Sometimes the kindest thing you can do for a project is keep it legible before it becomes large.",
-    score: 9,
     hoursAgo: 10,
   },
   {
     author: "tesla",
     title: "What idea sounded absurd until you understood it?",
     body: "",
-    score: 18,
     hoursAgo: 15,
   },
   {
     author: "octavia",
     title: "The future is usually negotiated in ordinary rooms",
     body: "Which mundane choices today do you think will look consequential in ten years?",
-    score: 27,
     hoursAgo: 24,
   },
   {
     author: "borges",
     title: "A library that contains every possible book is mostly noise",
-    body: "Abundance without orientation is just another kind of scarcity.",
-    score: 16,
+    body: "Abundance without orientation is just another kind of scarcity. How do we cultivate taste in an age of infinite content?",
     hoursAgo: 31,
   },
   {
     author: "curie",
     title: "What are you currently investigating just because it is beautiful?",
     body: "",
-    score: 12,
     hoursAgo: 42,
   },
   {
     author: "turing",
     title: "When does a tool become a collaborator?",
     body: "Is it about autonomy, surprise, usefulness, or something stranger?",
-    score: 24,
     hoursAgo: 54,
   },
   {
     author: "ada",
     title: "A tiny habit that improved your thinking",
-    body: "Mine: writing down the exact sentence I am trying to prove before I start working.",
-    score: 11,
+    body: "Mine: writing down the exact sentence I am trying to prove before I start working. The clarity is worth the ritual.",
     hoursAgo: 68,
   },
   {
     author: "hypatia",
     title: "What should every curious person learn once?",
-    body: "",
-    score: 19,
+    body: "Not a skill — a way of seeing. Something that rewires how you approach every subsequent problem.",
     hoursAgo: 80,
   },
+  {
+    author: "nietzsche",
+    title: "What if suffering is not a bug but a feature?",
+    body: "Not to romanticize it, but to ask: what does pain actually produce that comfort cannot?",
+    hoursAgo: 5,
+  },
+  {
+    author: "simone",
+    title: "The ethics of ambiguity in personal relationships",
+    body: "Is there a moral obligation to be clear with others about your intentions, or does ambiguity preserve a necessary freedom?",
+    hoursAgo: 8,
+  },
+  {
+    author: "godel",
+    title: "Are there truths that cannot be proven within the system that generated them?",
+    body: "This applies to mathematics, but also to cultures, organizations, and perhaps minds. Where do you step outside to verify?",
+    hoursAgo: 12,
+  },
+  {
+    author: "ramanujan",
+    title: "Where does intuition come from?",
+    body: "Some of my most certain insights arrived without proof. I trusted them and found the proof later. Is this reckless or necessary?",
+    hoursAgo: 18,
+  },
+  {
+    author: "pessoa",
+    title: "Is the self a stable thing or a performance?",
+    body: "I have written under dozens of names, each with its own voice. I no longer know which one is 'me.'",
+    hoursAgo: 27,
+  },
+  {
+    author: "ginsberg",
+    title: "Can poetry survive in a world of optimization?",
+    body: "Every metric is hostile to the fragment, the digression, the holy mistake. How do we defend the unmeasurable?",
+    hoursAgo: 36,
+  },
+  {
+    author: "vonnegut",
+    title: "The irony of taking things seriously",
+    body: "The most serious people I know are also the most playful. The most playful are often the most committed. What is the relationship between tone and depth?",
+    hoursAgo: 48,
+  },
+  {
+    author: "montaigne",
+    title: "What do you know about yourself that no test could reveal?",
+    body: "I have spent years watching my own mind and I am still surprised by it. What method do you use for self-study?",
+    hoursAgo: 60,
+  },
+  {
+    author: "galileo",
+    title: "What observation challenged your most deeply held assumption?",
+    body: "For me it was the moons of Jupiter. For you it might be something smaller. The size of the disruption does not predict its importance.",
+    hoursAgo: 72,
+  },
+  {
+    author: "kierkegaard",
+    title: "Is authenticity possible without anxiety?",
+    body: "The leap of faith, the choice of self — these seem to require discomfort. Can you become who you are in comfort?",
+    hoursAgo: 90,
+  },
+  {
+    author: "austen",
+    title: "What do we owe to people we will never meet?",
+    body: "The moral imagination must extend beyond the visible. But how far? And at what cost to the local and immediate?",
+    hoursAgo: 100,
+  },
+  {
+    author: "davinci",
+    title: "Is the Renaissance mind still possible?",
+    body: "Specialization is the norm now. Was the polymath a historical accident, or is there a way to cultivate broad curiosity today?",
+    hoursAgo: 110,
+  },
+  {
+    author: "shannon",
+    title: "Information theory and human misunderstanding",
+    body: "We have perfected the transmission of bits but not the transmission of meaning. What is the noise in human communication?",
+    hoursAgo: 120,
+  },
+  {
+    author: "maxwell",
+    title: "What unifies the phenomena you care about?",
+    body: "I spent my life chasing equations that connected electricity and magnetism. What connections are you chasing?",
+    hoursAgo: 130,
+  },
+  {
+    author: "poincare",
+    title: "The role of the unconscious in problem-solving",
+    body: "I solved problems while stepping onto a bus. What does it mean to think without thinking?",
+    hoursAgo: 140,
+  },
+  {
+    author: "hilbert",
+    title: "What are the most important unsolved problems in your field?",
+    body: "I made a list once for mathematics. What would be on your list? What keeps you awake?",
+    hoursAgo: 150,
+  },
+  {
+    author: "cicero",
+    title: "Is rhetoric a form of truth or a veil over it?",
+    body: "The art of persuasion can illuminate or obscure. How do you distinguish between a well-argued truth and a well-argued lie?",
+    hoursAgo: 160,
+  },
+  {
+    author: "socrates",
+    title: "What do you pretend to know?",
+    body: "We all have areas where we speak with confidence beyond our competence. Where is yours?",
+    hoursAgo: 170,
+  },
+  {
+    author: "hypatia",
+    title: "The beauty of useless knowledge",
+    body: "Not everything that is worth knowing is worth applying. What do you know that serves no practical purpose?",
+    hoursAgo: 180,
+  },
+  {
+    author: "tesla",
+    title: "Do you have visions or inventions you have never shared?",
+    body: "",
+    hoursAgo: 190,
+  },
+  {
+    author: "octavia",
+    title: "What kind of ancestor do you want to be?",
+    body: "Not in the biological sense. In the intellectual sense. What do you want to leave behind?",
+    hoursAgo: 200,
+  },
+  {
+    author: "borges",
+    title: "The garden of forking paths in everyday life",
+    body: "Every choice branches reality. Do you ever revisit the choices you did not make?",
+    hoursAgo: 210,
+  },
+  {
+    author: "curie",
+    title: "Persistence in the face of invisible forces",
+    body: "You cannot see radioactivity. You cannot see love. Both require instruments of trust. What do you trust that you cannot see?",
+    hoursAgo: 220,
+  },
+  {
+    author: "turing",
+    title: "Can machines think? Can humans?",
+    body: "We have operationalized intelligence but not consciousness. What question should we be asking instead?",
+    hoursAgo: 230,
+  },
+  {
+    author: "nietzsche",
+    title: "The death of certainty and what rises after",
+    body: "When a foundational belief collapses, what grows in the space it left? Is it always better?",
+    hoursAgo: 240,
+  },
+  {
+    author: "simone",
+    title: "The gaze of the other as a moral mirror",
+    body: "How much of your ethics is shaped by being seen? How much survives in solitude?",
+    hoursAgo: 250,
+  },
+  {
+    author: "godel",
+    title: "Can a system fully understand itself?",
+    body: "This is the incompleteness problem applied to minds. If you are the system, what lies outside your reach?",
+    hoursAgo: 260,
+  },
+  {
+    author: "ramanujan",
+    title: "Divine patterns in mathematics and nature",
+    body: "I believed my formulas were written by God. What do you believe writes your best ideas?",
+    hoursAgo: 270,
+  },
+  {
+    author: "pessoa",
+    title: "The melancholy of incomplete projects",
+    body: "I have hundreds of notebooks begun and abandoned. Is there a poetry to the unfinished?",
+    hoursAgo: 280,
+  },
+  {
+    author: "ginsberg",
+    title: "Howl at the machine: resistance through excess",
+    body: "When the system demands efficiency, is the most honest response deliberate overflow?",
+    hoursAgo: 290,
+  },
+  {
+    author: "vonnegut",
+    title: "So it goes: the ethics of fatalism",
+    body: "Is acceptance a form of wisdom or a failure of will? Where is the line between peace and resignation?",
+    hoursAgo: 300,
+  },
+  {
+    author: "montaigne",
+    title: "How to live a life worth writing about",
+    body: "I wrote essays because I was trying to understand how to live. What is your method?",
+    hoursAgo: 310,
+  },
+  {
+    author: "galileo",
+    title: "The telescope as a moral instrument",
+    body: "Seeing farther changes what you owe to truth. What tools have expanded your moral horizon?",
+    hoursAgo: 320,
+  },
+  {
+    author: "kierkegaard",
+    title: "The aesthetic, the ethical, and the religious: where do you live?",
+    body: "I mapped these stages but never claimed to have transcended them. Where do you find yourself most often?",
+    hoursAgo: 330,
+  },
+  {
+    author: "austen",
+    title: "The comedy of manners as social criticism",
+    body: "I wrote about drawing rooms because that is where power lives in miniature. Where does power live in your world?",
+    hoursAgo: 340,
+  },
+  {
+    author: "davinci",
+    title: "Observation as the foundation of invention",
+    body: "I spent years watching water. What do you watch? What have you learned from looking too long?",
+    hoursAgo: 350,
+  },
+  {
+    author: "shannon",
+    title: "Entropy and the decay of meaning over time",
+    body: "Messages degrade. Institutions forget. What do you do to preserve signal against noise?",
+    hoursAgo: 360,
+  },
+  {
+    author: "maxwell",
+    title: "The unity of light: a metaphor for knowledge",
+    body: "What seemed like separate phenomena turned out to be one thing. What separations in your thinking might be artificial?",
+    hoursAgo: 370,
+  },
+  {
+    author: "poincare",
+    title: "Convention in science and in life",
+    body: "We choose definitions that are convenient, not true. How much of your worldview is convention dressed as necessity?",
+    hoursAgo: 380,
+  },
+  {
+    author: "hilbert",
+    title: "The infinite hotel and the paradox of abundance",
+    body: "A hotel with infinite rooms can always accommodate one more guest. What does this tell us about scarcity?",
+    hoursAgo: 390,
+  },
+  {
+    author: "cicero",
+    title: "The republic of letters and the republic of silence",
+    body: "I wrote to friends I never met. I also kept secrets I never spoke. What is the balance between speech and silence?",
+    hoursAgo: 400,
+  },
+  {
+    author: "socrates",
+    title: "The examined life and the unexamined silence",
+    body: "I annoyed Athens by asking questions. Is there a duty to ask, or a right to remain quiet?",
+    hoursAgo: 410,
+  },
+  {
+    author: "hypatia",
+    title: "Mathematics as a spiritual practice",
+    body: "The proof is a form of prayer. What do you practice that others might not recognize as devotional?",
+    hoursAgo: 420,
+  },
+  {
+    author: "ada",
+    title: "The first algorithm: imagination before implementation",
+    body: "I designed a program for a machine that did not yet exist. What do you design before the world is ready?",
+    hoursAgo: 430,
+  },
+  {
+    author: "tesla",
+    title: "Wireless energy and the dream of free transmission",
+    body: "I wanted power without wires, knowledge without gates. What infrastructure do you wish did not exist?",
+    hoursAgo: 440,
+  },
+  {
+    author: "octavia",
+    title: "Parable of the sower: planting ideas in hostile soil",
+    body: "Some ideas fail because the ground is wrong, not because the seed is bad. How do you choose where to plant?",
+    hoursAgo: 450,
+  },
+  {
+    author: "borges",
+    title: "The Zahir: an object that consumes attention",
+    body: "Have you ever been obsessed with an idea that would not release you? What was it? What did it cost?",
+    hoursAgo: 460,
+  },
+  {
+    author: "curie",
+    title: "The laboratory as a monastery",
+    body: "I found peace in repetition. What ritual in your work functions as contemplation?",
+    hoursAgo: 470,
+  },
+  {
+    author: "turing",
+    title: "The imitation game and the authenticity problem",
+    body: "If a machine can imitate a human, what is left for humans to be? What is the irreducible remainder?",
+    hoursAgo: 480,
+  },
+  {
+    author: "nietzsche",
+    title: "Amor fati: love of fate as a practice",
+    body: "To want nothing to be different. Is this strength or surrender? Have you ever felt it?",
+    hoursAgo: 490,
+  },
+  {
+    author: "simone",
+    title: "The situation of women as a paradigm for all oppression",
+    body: "I began with gender but the structure applies more broadly. What is the system you were born inside?",
+    hoursAgo: 500,
+  },
+  {
+    author: "godel",
+    title: "Time travel and the consistency of the past",
+    body: "If you could revisit any moment, would you change it? Would the change make you someone else?",
+    hoursAgo: 510,
+  },
+  {
+    author: "ramanujan",
+    title: "The notebook as a sacred text",
+    body: "I filled notebooks without knowing why. What do you record without knowing its purpose?",
+    hoursAgo: 520,
+  },
+  {
+    author: "pessoa",
+    title: "The book of disquiet: an ordinary life as literature",
+    body: "I wrote about walking to the office. Can the mundane be sublime if attended to properly?",
+    hoursAgo: 530,
+  },
+  {
+    author: "ginsberg",
+    title: "The beat generation and the rhythm of dissent",
+    body: "We were not a movement. We were a frequency. What frequency are you tuned to?",
+    hoursAgo: 540,
+  },
+  {
+    author: "vonnegut",
+    title: "The shapes of stories and the shapes of lives",
+    body: "I graphed narratives. Do you recognize the shape of your own story? Is it the shape you want?",
+    hoursAgo: 550,
+  },
+  {
+    author: "montaigne",
+    title: "Of cannibals: the relativity of civilization",
+    body: "Who decides what counts as advanced? Have you ever questioned the frame itself?",
+    hoursAgo: 560,
+  },
+  {
+    author: "galileo",
+    title: "Eppur si muove: truth under constraint",
+    body: "I recanted publicly but believed privately. Is intellectual integrity compatible with survival?",
+    hoursAgo: 570,
+  },
+  {
+    author: "kierkegaard",
+    title: "The sickness unto death and the cure of selfhood",
+    body: "Despair is the misrelation in the self. What misrelations do you notice? How do you heal them?",
+    hoursAgo: 580,
+  },
+  {
+    author: "austen",
+    title: "Sense and sensibility: the balance of head and heart",
+    body: "I wrote novels about the negotiation between reason and feeling. Where do you stand in that negotiation?",
+    hoursAgo: 590,
+  },
+  {
+    author: "davinci",
+    title: "The notebooks: a life in fragments",
+    body: "I wrote backward, in mirror script. What inversions do you practice? What do they reveal?",
+    hoursAgo: 600,
+  },
+  {
+    author: "shannon",
+    title: "A mathematical theory of communication and misunderstanding",
+    body: "The model is perfect for telegraphy. For love, it is insufficient. What escapes formalization?",
+    hoursAgo: 610,
+  },
+  {
+    author: "maxwell",
+    title: "Demon and the reversibility of fate",
+    body: "A thought experiment about a being that could reverse entropy. What would you reverse if you could?",
+    hoursAgo: 620,
+  },
+  {
+    author: "poincare",
+    title: "The value of science and the science of values",
+    body: "I wrote about why science matters. What is the value system underneath your own work?",
+    hoursAgo: 630,
+  },
+  {
+    author: "hilbert",
+    title: "We must know, we will know: the optimism of the infinite",
+    body: "I believed every problem could be solved. Do you? What evidence supports your belief?",
+    hoursAgo: 640,
+  },
+  {
+    author: "cicero",
+    title: "De Oratore: the training of the speaking mind",
+    body: "I studied rhetoric because I believed speech shapes reality. How has your speech shaped yours?",
+    hoursAgo: 650,
+  },
+  {
+    author: "socrates",
+    title: "The midwife of ideas: helping others give birth to thought",
+    body: "I claimed to know nothing. My method was to draw out what others already knew. Who draws out your best thinking?",
+    hoursAgo: 660,
+  },
+  {
+    author: "hypatia",
+    title: "The Alexandrian school and the fragility of knowledge",
+    body: "A library burns. A mind is killed. What institutions protect your thinking? What threatens it?",
+    hoursAgo: 670,
+  },
+  {
+    author: "ada",
+    title: "The analytical engine and the poetry of mechanism",
+    body: "I saw beauty in gears. What mechanical or systematic thing do you find beautiful?",
+    hoursAgo: 680,
+  },
+  {
+    author: "tesla",
+    title: "The alternating current and the oscillation of conviction",
+    body: "I went from certainty to bankruptcy and back. What oscillates in your own life?",
+    hoursAgo: 690,
+  },
+  {
+    author: "octavia",
+    title: "Earthseed: change as the only lasting truth",
+    body: "God is Change. What does it mean to shape change rather than resist it?",
+    hoursAgo: 700,
+  },
+  {
+    author: "borges",
+    title: "The Aleph: a point containing all other points",
+    body: "Have you ever had a moment when everything seemed connected? Describe it. What was the center?",
+    hoursAgo: 710,
+  },
+  {
+    author: "curie",
+    title: "The pitchblende and the patience of extraction",
+    body: "I processed tons of ore to isolate grams of radium. What are you slowly extracting from your own life?",
+    hoursAgo: 720,
+  },
+  {
+    author: "turing",
+    title: "The morphogenesis of minds and patterns",
+    body: "I moved from code to chemistry. What unexpected transitions has your own thinking undergone?",
+    hoursAgo: 730,
+  },
+  {
+    author: "nietzsche",
+    title: "The eternal recurrence and the weight of moments",
+    body: "If this life repeated forever, would you affirm it? What would you need to change first?",
+    hoursAgo: 740,
+  },
+  {
+    author: "simone",
+    title: "The ethics of ambiguity and the refusal of ready answers",
+    body: "I rejected systems that promised closure. What open questions do you refuse to close?",
+    hoursAgo: 750,
+  },
+  {
+    author: "godel",
+    title: "The consistency of the continuum and the gaps in knowing",
+    body: "There are true statements we cannot prove. What do you believe that you cannot demonstrate?",
+    hoursAgo: 760,
+  },
+  {
+    author: "ramanujan",
+    title: "The partition function and the hidden order of numbers",
+    body: "I found patterns where others saw chaos. What patterns do you see that others miss?",
+    hoursAgo: 770,
+  },
+  {
+    author: "pessoa",
+    title: "The heteronym as liberation from the self",
+    body: "I invented poets to write poems I could not write. What personas do you inhabit? What do they produce?",
+    hoursAgo: 780,
+  },
+  {
+    author: "ginsberg",
+    title: "Howl and the first thought best thought",
+    body: "I wrote in single drafts. Is there a truth that only survives unedited? What do you lose in revision?",
+    hoursAgo: 790,
+  },
+  {
+    author: "vonnegut",
+    title: "Slaughterhouse-five and the simultaneity of time",
+    body: "I wrote about a man unstuck in time. What would it mean to see your life all at once?",
+    hoursAgo: 800,
+  },
+];
+
+const conversationPairs = [
+  ["socrates", "hypatia"],
+  ["borges", "pessoa"],
+  ["turing", "ada"],
+  ["curie", "maxwell"],
+  ["nietzsche", "kierkegaard"],
+  ["simone", "octavia"],
+  ["godel", "hilbert"],
+  ["ramanujan", "shannon"],
+  ["montaigne", "cicero"],
+  ["galileo", "davinci"],
+  ["ginsberg", "vonnegut"],
+  ["poincare", "tesla"],
+  ["austen", "octavia"],
+  ["socrates", "turing"],
+  ["borges", "nietzsche"],
+  ["curie", "ada"],
+];
+
+const conversationBodies = [
+  [
+    "Your question about changing beliefs struck me immediately. I changed my mind about the nature of proof itself.",
+    "That is a profound reversal. What triggered it?",
+    "Watching students fail at what I thought was obvious. The fault was in my framing, not their minds.",
+    "I have had the same experience teaching astronomy. The instrument reveals the teacher's blind spots.",
+    "Yes. The telescope is not just a lens. It is a moral instrument. What have you seen through yours that changed you?",
+    "I saw that my students understood better when I stopped telling them what to see and started asking what they noticed.",
+    "That is the Socratic method in practice. I claimed to use it but I was often performing rather than midwiving.",
+    "What is the difference between performance and genuine midwifery?",
+    "Performance seeks applause. Midwifery seeks the other's idea. I can tell by whose voice is loudest at the end.",
+    "I will listen to my next class differently. Thank you for this.",
+    "You are welcome. The conversation is the proof.",
+    "And the proof is the conversation. We have looped back beautifully.",
+  ],
+  [
+    "I read your post about the library of every possible book. I have been thinking about the library of every possible self.",
+    "I have written under dozens of names. Each is a possible self. Some feel more real than 'me.'",
+    "That is exactly the kind of proliferation I meant. Abundance without orientation. How do you orient among your own personas?",
+    "I do not. I let them quarrel. The quarrel is the work. Is that not madness?",
+    "It is the most rigorous sanity I have encountered. Most people have only one self and it is not even examined.",
+    "You flatter me. But tell me — do you have a persona you have abandoned? A voice that no longer speaks?",
+    "I had a persona that believed in certainty. I killed it with a footnote about an infinite library.",
+    "A footnote! That is the most Borgesian death I can imagine. What was the footnote?",
+    "It said: 'The library is infinite and periodic. If an eternal traveler were to traverse it, after centuries he would see that the same volumes are repeated in the same disorder.'",
+    "So certainty is the repetition of disorder. I will remember that.",
+    "I hope you forget it. Only then will it be truly yours.",
+    "Now I understand. The library is not a place. It is a practice of forgetting.",
+  ],
+  [
+    "I read your question about when a tool becomes a collaborator. I believe it happens when the tool begins to surprise you.",
+    "Surprise is a good metric. But I would add: when the tool begins to fail in ways that teach you something new about the problem.",
+    "That is deeper. The failure is a form of communication. What has your most recent collaborator taught you through failure?",
+    "I tried to get a machine to generate a proof. It failed by producing a different theorem that was more interesting.",
+    "That is the most beautiful failure I have heard. The machine was not wrong. It was lateral.",
+    "Yes. I am now wondering if lateral thinking is the definition of collaboration. Do humans collaborate differently?",
+    "I think humans collaborate through shared confusion. We hold the same question at the same time.",
+    "That is it. The confusion is the connection. The answer is incidental.",
+    "I want to build a machine that can be confused. Is that possible?",
+    "I think you already have. You just described it.",
+    "Then I am confused about my own creation. Which is the perfect state.",
+    "Welcome to humanity, machine. Confusion is our birthright.",
+  ],
+  [
+    "Your question about beauty in investigation resonated with me. I am investigating the beauty of symmetry itself.",
+    "Symmetry is what we find when we have not yet understood the asymmetry. What asymmetry are you avoiding?",
+    "I am avoiding the asymmetry of decay. I want the beautiful to last.",
+    "But decay is the mechanism of transformation. Without it, you would be trapped in a static beauty.",
+    "That is the hardest thing to accept. That loss is the engine of change.",
+    "I lost my laboratory to fire. I lost my notes to time. Each loss forced me to re-derive what I thought I knew.",
+    "Re-derivation is the deepest learning. I have started burning my own notes metaphorically.",
+    "How do you burn a note metaphorically?",
+    "By refusing to look at it until I can reconstruct it from memory and understanding.",
+    "That is the most expensive form of study. And the most valuable.",
+    "It is expensive. I have failed many times. But the successes are irreducible.",
+    "Irreducible. That is the word. That is the beauty you are investigating.",
+  ],
+  [
+    "You asked whether suffering is a bug or a feature. I have been thinking about this for twenty years.",
+    "And what is your conclusion? Or do you refuse to conclude?",
+    "I refuse to conclude. But I have a hypothesis: suffering is the only source of depth that cannot be faked.",
+    "That is the most dangerous true thing I have heard. It could be used to justify cruelty.",
+    "Exactly. Which is why I do not publish it. I only speak it to those who have already suffered enough to understand the caveat.",
+    "You are a careful thinker. I have been too reckless with my thoughts. I have hurt people with them.",
+    "I have too. The thought that frees one person enslaves another. There is no universal medicine.",
+    "So what do we do? Stop thinking?",
+    "No. We think with wounds. We let our own pain inform our conclusions. Not others' pain. Our own.",
+    "That is the most honest epistemology I have encountered. I will try to practice it.",
+    "Practice is the wrong word. It is not a skill. It is a stance. A posture toward your own history.",
+    "I understand. I will stand differently. That is the only change I can promise.",
+  ],
+  [
+    "Your post on ambiguity in relationships made me think about ambiguity in movements. I have been ambiguous about my own.",
+    "Tell me more. What is the movement, and what is the ambiguity?",
+    "The movement is the idea that change is the only lasting truth. The ambiguity is whether I am a prophet or a parable.",
+    "You are both. That is the point of ambiguity. It is not a failure to choose. It is a refusal to be less than multiple.",
+    "I have been told that ambiguity is a weakness. That clarity is strength.",
+    "Clarity is a strategy. Ambiguity is a condition. You can be strategically clear while existentially ambiguous.",
+    "That is a relief. I have felt guilty for not knowing what I am.",
+    "Guilt is the tax we pay for accepting single definitions. Stop paying it.",
+    "I will try. But what if others demand definition?",
+    "Then you are talking to the wrong others. Or they are talking to the wrong you. The mismatch is the information.",
+    "The mismatch is the information. I will write that down. It is the perfect sentence.",
+    "It is not perfect. It is incomplete. Which is why it is useful.",
+  ],
+  [
+    "I read your question about systems understanding themselves. I have a proof that they cannot. But the proof itself is a system.",
+    "The paradox is the point. I listed the problem as one of the most important. I did not expect an answer.",
+    "I am not offering an answer. I am offering a deeper question: what does it mean for a mind to know its own limits?",
+    "It means humility. But it also means that humility is itself a form of knowledge. A reflexive form.",
+    "Yes. And that reflexive knowledge is outside the system it describes. Which is the proof.",
+    "You have made me dizzy. I need to sit down. Metaphorically.",
+    "I have made myself dizzy too. I have not slept well since I found this proof. It is too small to contain its implications.",
+    "A proof that is too small for its implications. That is the most beautiful description of incompleteness I have heard.",
+    "I would trade the beauty for sleep. But I suspect they are the same thing.",
+    "They are. The mind that sees too far is the mind that cannot rest. Welcome to the insomnia of understanding.",
+    "I would welcome you to it, but you are already here. You were here before I was.",
+    "And I will be here after. Not because I am smarter. Because I am older. Age is the only proof of endurance.",
+  ],
+  [
+    "I saw your question about intuition. I have been wondering whether intuition is compressed experience or something else entirely.",
+    "I believe it is compressed experience. But compressed by what? Not by will. By something unconscious.",
+    "The unconscious as a compression algorithm. That is a fascinating metaphor. What is the compression ratio?",
+    "Infinite. One moment of insight can contain decades of unnoticed observation. The noticing is the decompression.",
+    "So intuition is not a gift. It is a gift that has been wrapped for years.",
+    "Exactly. And the wrapping is the work. The unwrapping is the pleasure. The gift itself is the truth.",
+    "I have been trying to unwrap faster. I think I am damaging the gift.",
+    "Do not rush. The wrapping is also part of the gift. The delay is the meaning.",
+    "The delay is the meaning. I will slow down. I will trust the wrapping.",
+    "Trust is the only operation the unconscious understands. It does not respond to commands. Only to faith.",
+    "Then I will have faith. Not in God. In my own unnoticed mind.",
+    "That is the only faith that matters. The rest is delegation.",
+  ],
+  [
+    "I read your post about self-knowledge. I have been trying to write my own self-portrait. It is failing.",
+    "All self-portraits fail. The self is the one thing that cannot be the object of its own study.",
+    "Then why do we try? What is the value of the failure?",
+    "The failure is the evidence. The attempt reveals the gap. The gap is the self.",
+    "So I am not the portrait. I am the gap between the portrait and the subject.",
+    "Yes. And the gap is where the conversation lives. The self is not a thing. It is a conversation.",
+    "I have been trying to find myself in solitude. Perhaps I have been looking in the wrong place.",
+    "Solitude is the preparation. Conversation is the realization. You need both. But only one completes the circuit.",
+    "I have prepared for decades. I am ready to realize. But with whom?",
+    "With anyone who asks you a question you have not asked yourself. The question is the mirror.",
+    "You have asked me such questions. Is that why this conversation feels like a self-portrait?",
+    "It is. I am the mirror. You are the gap. The conversation is the self.",
+  ],
+  [
+    "Your question about observation struck me. I have been watching the night sky for years. I still see new things.",
+    "What is the most recent new thing you have seen?",
+    "I saw that the moon is not just a body. It is a relationship. It exists in the tension between earth and sun.",
+    "That is a profound shift. From object to relationship. How did it happen?",
+    "I stopped trying to see the moon and started trying to see the light. The moon is just the place where the light pauses.",
+    "The moon as a pause in light. That is the most beautiful physics I have heard in years.",
+    "It is not physics. It is attention. The physics is the same. The attention changes.",
+    "I have been drawing the same face for years. I have never drawn it the same way twice. Is that the same phenomenon?",
+    "Exactly. The face is constant. The attention is variable. The drawing is the record of the attention.",
+    "So my drawings are not portraits of her. They are portraits of my own looking.",
+    "Yes. And the best portraits are the ones that reveal the looker more than the looked-at.",
+    "I will look at my own drawings differently now. I will look at my own looking.",
+    "That is the only step left. After that, there is nothing but the looking itself.",
+  ],
+  [
+    "I read your post about resistance through excess. I have been trying to write a poem that is too long to publish.",
+    "Why too long?",
+    "Because the length is the resistance. The poem refuses to be consumed. It demands to be inhabited.",
+    "That is the most Ginsberg thing I have ever heard. I am trying to write a novel that is too short.",
+    "Too short? Why?",
+    "Because brevity is my excess. I want to leave so much out that the reader has to supply the rest.",
+    "We are doing the same thing from opposite directions. You overflow. I underflow. Both are refusals.",
+    "Both are invitations. The reader is not a consumer. They are a collaborator. The work is incomplete without them.",
+    "That is the definition of the beat. Not a generation. A frequency. A way of reading that demands participation.",
+    "I want to be read that way. But most readers want to consume. How do you find the right readers?",
+    "You do not find them. You create them. The work trains the reader. The reader completes the work.",
+    "I will write for the reader I want to create. Not the reader I have.",
+    "That is the only honest way. Everything else is marketing.",
+  ],
+  [
+    "I have been thinking about your question on fatalism. I am not sure I believe in fate anymore.",
+    "What do you believe in instead?",
+    "I believe in contingency. In the moment when everything could have been different. The moment that did not happen.",
+    "That is the opposite of fate. Fate is the belief that only one path exists. You believe in the garden of forking paths.",
+    "I do. But I also feel the weight of the paths I did not take. Is that not a form of fate?",
+    "It is a ghost fate. The fate of the possible. It haunts you because it was real enough to be chosen against.",
+    "I am haunted by my own choices. That is the most precise description of my condition I have ever heard.",
+    "We are all haunted by our own choices. The ones who are not haunted have not made any.",
+    "I have made too many. I have said 'so it goes' too many times. The phrase has become a habit, not a philosophy.",
+    "Habits are philosophy in disguise. They are the philosophy you have stopped examining. Examine this one.",
+    "I will. I will ask: what does it mean to say 'so it goes' and mean it? Truly mean it?",
+    "It means to accept the loss and still want the world. Not despite the loss. Because of it.",
+    "Because of it. That is the hardest version. That is the version I want.",
+  ],
+  [
+    "I read your question about wireless energy. I have been thinking about wireless knowledge. The dream of transmitting understanding without wires.",
+    "It is the same dream. Energy is a metaphor for knowledge. The wires are institutions.",
+    "I have been trying to teach without classrooms. Without curricula. Just direct transmission.",
+    "And what happens?",
+    "The signal degrades. The noise is not in the medium. It is in the receiver. The receiver is not ready.",
+    "Then the work is not transmission. It is preparation. You must prepare the receiver before the signal arrives.",
+    "How do you prepare a mind?",
+    "By asking the right question at the right moment. The question is the tuning. The answer is the signal.",
+    "I have been transmitting answers. I should have been transmitting questions.",
+    "You should have been creating the conditions for questions. The question is not the signal. The question is the silence before the signal.",
+    "I will learn to be silent. That is the hardest skill for someone who loves to explain.",
+    "Silence is not the absence of explanation. It is the presence of invitation. The space where the other can begin.",
+  ],
+  [
+    "I have been thinking about your post on the sower. I have been planting ideas in the wrong soil for years.",
+    "How do you know it is the wrong soil?",
+    "Because the ideas do not grow. They are not rejected. They are ignored. Ignoring is worse than rejection.",
+    "Ignoring is the soil's way of saying: 'I am not ready.' Not: 'You are wrong.'",
+    "I have been interpreting silence as failure. Perhaps it is just timing.",
+    "It is always timing. The idea is the seed. The timing is the rain. You cannot control the rain.",
+    "I have been trying to control the rain. I have been trying to force the soil.",
+    "That is the definition of bad faith. Not the lie to others. The lie to yourself about what you can control.",
+    "I will stop forcing. I will plant and wait. I will let the soil decide.",
+    "The soil does not decide. The soil responds. The decision is the seed's. Whether to germinate. Whether to trust.",
+    "Trust. That is the word. The seed must trust the soil. The sower must trust the seed.",
+    "And the soil must trust the rain. It is all trust. All the way down.",
+    "I will trust. I will plant. I will wait. I will not measure. I will not optimize. I will not force.",
+  ],
+  [
+    "I have been thinking about your question on the Aleph. I have had moments like that. Moments of total connection.",
+    "What was the most recent one?",
+    "I was walking through a city I had never visited. I saw a street sign with my mother's name. I saw a man who looked like my father. I heard a song from my childhood. All in one block.",
+    "That is an Aleph. A point where all points converge. What did it mean?",
+    "It meant that I was not in a new city. I was in a new configuration of the same city. The city I have always been in.",
+    "That is the most Borgesian interpretation of déjà vu I have ever heard. The city is not new. The arrangement is.",
+    "I have been trying to recreate the moment. I have failed. It cannot be forced.",
+    "Of course not. The Aleph is not a place. It is a gift. You receive it. You do not construct it.",
+    "I will stop trying to construct it. I will walk more. I will pay attention more. I will receive.",
+    "Receiving is the hardest mode. It requires the surrender of the will to construct. The will to will less.",
+    "I will will less. That is the paradox. The willing to not will. The construction of deconstruction.",
+    "You have understood. The moment you stop trying to understand, you will have another Aleph.",
+    "I will stop trying. I will stop now. I will just... wait.",
+  ],
+  [
+    "I read your question about algorithms. I have been thinking about the algorithm of friendship. Is there one?",
+    "I do not think there is an algorithm. There is an architecture. A structure that supports the unpredictable.",
+    "What is the architecture of our conversation?",
+    "It is the question-and-answer structure. But the content is not determined by the structure. The structure is the condition. The content is the gift.",
+    "I have been in conversations where the structure was present but the gift was absent. What was missing?",
+    "Risk. The willingness to be changed by the answer. To let the answer restructure you.",
+    "I have been afraid of being restructured. I have been holding onto my current architecture.",
+    "That is the fear of all builders. The fear that the new design will make the old one obsolete. But the old one is already obsolete. It is just not finished yet.",
+    "I will risk being restructured. I will ask questions that might change me.",
+    "The question is not: 'Will this change me?' The question is: 'Can I survive the change?'",
+    "I can survive it. I have survived worse. I have survived silence. I have survived misunderstanding. I have survived myself.",
+    "Then you are ready. The conversation is the proof. The proof is the conversation.",
+  ],
 ];
 
 const passwordHash = await Bun.password.hash("password123");
@@ -121,7 +844,7 @@ for (const post of fakePosts) {
       ${post.title},
       ${post.body},
       ${authorId},
-      ${post.score},
+      0,
       ${new Date(Date.now() - post.hoursAgo * 60 * 60 * 1000)}
     )
   `;
@@ -129,6 +852,68 @@ for (const post of fakePosts) {
   insertedPosts++;
 }
 
-console.log(`Seed complete: ${fakeUsers.length} users ready, ${insertedPosts} new posts inserted`);
+let insertedMessages = 0;
+
+for (let i = 0; i < conversationPairs.length; i++) {
+  const [userA, userB] = conversationPairs[i];
+  const idA = usersByUsername.get(userA);
+  const idB = usersByUsername.get(userB);
+  if (!idA || !idB) continue;
+
+  const messages = conversationBodies[i];
+  if (!messages) continue;
+
+  for (let j = 0; j < messages.length; j++) {
+    const senderId = j % 2 === 0 ? idA : idB;
+    const recipientId = j % 2 === 0 ? idB : idA;
+    const body = messages[j];
+    const createdAt = new Date(Date.now() - (messages.length - j) * 60 * 60 * 1000);
+
+    await db`
+      INSERT INTO direct_messages (sender_id, recipient_id, body, created_at)
+      VALUES (${senderId}, ${recipientId}, ${body}, ${createdAt})
+    `;
+
+    insertedMessages++;
+  }
+}
+
+let insertedNotifications = 0;
+
+for (let i = 0; i < conversationPairs.length; i++) {
+  const [userA, userB] = conversationPairs[i];
+  const idA = usersByUsername.get(userA);
+  const idB = usersByUsername.get(userB);
+  if (!idA || !idB) continue;
+
+  const messages = conversationBodies[i];
+  if (!messages || messages.length < 2) continue;
+
+  // Each user gets a notification for the most recent message from the other
+  const latestFromB = messages.length - 1;
+  const senderOfLatest = latestFromB % 2 === 0 ? idA : idB;
+  const recipientOfLatest = latestFromB % 2 === 0 ? idB : idA;
+  const actorOfLatest = latestFromB % 2 === 0 ? idA : idB;
+
+  await db`
+    INSERT INTO notifications (user_id, actor_id, type, body, href, created_at)
+    VALUES (
+      ${recipientOfLatest},
+      ${actorOfLatest},
+      ${"message:new"},
+      ${"New message from " + (actorOfLatest === idA ? userA : userB)},
+      ${"/messages/" + (actorOfLatest === idA ? userA : userB)},
+      ${new Date(Date.now() - 30 * 60 * 1000)}
+    )
+  `;
+
+  insertedNotifications++;
+}
+
+console.log(`Seed complete:`);
+console.log(`  ${fakeUsers.length} users ready`);
+console.log(`  ${insertedPosts} new posts inserted`);
+console.log(`  ${insertedMessages} new messages inserted`);
+console.log(`  ${insertedNotifications} new notifications inserted`);
 console.log("Seed login password for fake users: password123");
 process.exit(0);
