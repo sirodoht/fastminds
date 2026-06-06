@@ -14,8 +14,41 @@ import {
   upgradeMessagesWebSocket,
   type MessageSocketData,
 } from "./websocket/messages";
+import { db } from "./db";
 
 const app = new Hono();
+
+const PUBLIC_URL = process.env.PUBLIC_URL || "https://fastminds.xyz";
+
+function injectMetaTags(html: string, tags: Record<string, string>) {
+  let head = html;
+  for (const [property, content] of Object.entries(tags)) {
+    if (property.startsWith("og:")) {
+      // Replace existing tag or inject
+      const regex = new RegExp(`<meta property="${property}" content="[^"]*" ?/?>`);
+      if (regex.test(head)) {
+        head = head.replace(regex, `<meta property="${property}" content="${content}" />`);
+      } else {
+        head = head.replace("</head>", `  <meta property="${property}" content="${content}" />\n  </head>`);
+      }
+    } else if (property.startsWith("twitter:")) {
+      const regex = new RegExp(`<meta name="${property}" content="[^"]*" ?/?>`);
+      if (regex.test(head)) {
+        head = head.replace(regex, `<meta name="${property}" content="${content}" />`);
+      } else {
+        head = head.replace("</head>", `  <meta name="${property}" content="${content}" />\n  </head>`);
+      }
+    } else {
+      const regex = new RegExp(`<meta name="${property}" content="[^"]*" ?/?>`);
+      if (regex.test(head)) {
+        head = head.replace(regex, `<meta name="${property}" content="${content}" />`);
+      } else {
+        head = head.replace("</head>", `  <meta name="${property}" content="${content}" />\n  </head>`);
+      }
+    }
+  }
+  return head;
+}
 
 app.use("/api/*", cors({ origin: "http://localhost:5173", credentials: true }));
 app.get("/api/health", (c) => c.json({ ok: true }));
@@ -38,7 +71,63 @@ app.get("*", async (c) => {
     return c.notFound();
   }
 
-  return c.html(await index.text());
+  let html = await index.text();
+  const path = c.req.path;
+  const url = `${PUBLIC_URL}${path}`;
+
+  // Default meta tags
+  const tags: Record<string, string> = {
+    "og:url": url,
+    "og:type": "website",
+  };
+
+  // Dynamic meta tags for specific routes
+  if (path.startsWith("/posts/")) {
+    const id = path.split("/")[2];
+    if (id) {
+      const [post] = await db`
+        SELECT title, body FROM posts WHERE id = ${id}
+      `;
+      if (post) {
+        const excerpt = post.body ? post.body.slice(0, 200).replace(/\n/g, " ") : "";
+        tags["og:title"] = post.title;
+        tags["og:description"] = excerpt || "Anonymous-to-pseudonymous conversations around ideas.";
+      }
+    }
+  } else if (path.startsWith("/u/")) {
+    const username = path.split("/")[2];
+    if (username) {
+      const [user] = await db`
+        SELECT username FROM users WHERE username = ${username}
+      `;
+      if (user) {
+        tags["og:title"] = `${user.username} on fastminds`;
+        tags["og:description"] = `View ${user.username}'s profile on fastminds.`;
+      }
+    }
+  } else if (path.startsWith("/conversations/")) {
+    const id = path.split("/")[2];
+    if (id) {
+      const [conv] = await db`
+        SELECT c.id, p.title
+        FROM conversations c
+        JOIN posts p ON c.post_id = p.id
+        WHERE c.id = ${id}
+      `;
+      if (conv) {
+        tags["og:title"] = `Conversation on fastminds`;
+        tags["og:description"] = conv.title ? `Conversation about: ${conv.title}` : "Anonymous-to-pseudonymous conversations around ideas.";
+      }
+    }
+  }
+
+  if (tags["og:title"]) {
+    // Also update the <title> tag
+    html = html.replace(/<title>[^<]*<\/title>/, `<title>${tags["og:title"]}</title>`);
+    html = injectMetaTags(html, tags);
+  }
+
+  return c.html(html);
 });
 
 const serverConfig = {
