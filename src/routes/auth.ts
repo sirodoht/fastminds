@@ -314,4 +314,35 @@ auth.post("/resend-verification", authMiddleware, async (c) => {
   return c.json({ success: true });
 });
 
+auth.post("/change-password", authMiddleware, async (c) => {
+  const { oldPassword, newPassword } = await c.req.json();
+
+  if (!oldPassword || !newPassword) {
+    return c.json({ error: "oldPassword and newPassword are required" }, 400);
+  }
+  if (newPassword.length < 6) {
+    return c.json({ error: "New password must be at least 6 characters" }, 400);
+  }
+
+  const userId = c.get("userId");
+  const [user] = await db`
+    SELECT id, password_hash FROM users WHERE id = ${userId}
+  `;
+  if (!user) {
+    return c.json({ error: "User not found" }, 404);
+  }
+
+  const valid = await Bun.password.verify(oldPassword, user.password_hash);
+  if (!valid) {
+    return c.json({ error: "Incorrect current password" }, 401);
+  }
+
+  const newPasswordHash = await Bun.password.hash(newPassword);
+  await db`
+    UPDATE users SET password_hash = ${newPasswordHash} WHERE id = ${userId}
+  `;
+
+  return c.json({ success: true });
+});
+
 export { auth as authRoutes };

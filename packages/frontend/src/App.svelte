@@ -21,6 +21,7 @@
   import Register from "./pages/Register.svelte";
   import RegisterSuccess from "./pages/RegisterSuccess.svelte";
   import VerifyEmail from "./pages/VerifyEmail.svelte";
+  import Settings from "./pages/Settings.svelte";
   import NotFound from "./pages/NotFound.svelte";
   import ConversationSidebar from "./components/ConversationSidebar.svelte";
 
@@ -69,6 +70,7 @@
     "/register": Register,
     "/register/success": RegisterSuccess,
     "/verify-email": VerifyEmail,
+    "/settings": Settings,
   }} fallback={NotFound}>
   {#snippet children(matched)}
     <header class="header">
@@ -90,6 +92,7 @@
       <div class="header-right">
         {#if $user}
           <Link href="/profile/{$user.username}" class="username">{$user.username}</Link>
+          <Link href="/settings">Settings</Link>
           <button onclick={() => { logout(); navigate("/"); }}>
             Log out
           </button>
