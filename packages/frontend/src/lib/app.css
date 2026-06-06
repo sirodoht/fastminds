@@ -201,23 +201,45 @@ a:visited {
 }
 
 .sidebar-card h3 {
-  font-size: .95rem;
-  font-weight: 600;
-  margin-bottom: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 4px;
   color: var(--text);
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 6px;
+}
+
+.sidebar-card hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 10px 0;
 }
 
 .sidebar-card p {
   color: var(--text-muted);
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.sidebar-card ol,
+.sidebar-card ul {
+  margin-bottom: 8px;
+  padding-left: 1.2rem;
+}
+
+.sidebar-card li {
+  margin-bottom: 4px;
+  line-height: 1.5;
+}
+
+.sidebar-card p:has(> strong:only-child) {
+  margin-top: 12px;
   margin-bottom: 6px;
+  color: var(--text);
 }
 
 .sidebar-card .btn-primary {
   display: block;
   text-align: center;
-  margin-top: 8px;
+  margin-top: 12px;
 }
 
 /* ──────── Cards / Panels ──────── */

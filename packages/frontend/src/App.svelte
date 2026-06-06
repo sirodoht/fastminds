@@ -124,8 +124,38 @@
         <aside class="sidebar">
           <div class="sidebar-card">
             <h3>fastminds</h3>
-            <p>Discover ideas. Start conversations. Reveal who you're talking to only after 10 messages.</p>
-            <p>No followers. No likes. No algorithmic feed. Just ideas and the people who respond to them.</p>
+            <hr />
+            <p>
+                <strong>How it works</strong>
+            </p>
+            <ol>
+                <li>Ask a question or post an idea about a specific topic.</li>
+                <li>Receive private responses and start conversations.</li>
+            </ol>
+            <p>
+                Conversations start anonymous and become pseudonymous.
+                After 10 messages both participants see each other’s profile.
+            </p>
+            <p>
+                Interlocutor can assign labels to each others after 10 messages in the same conversation.
+            </p>
+            <p>
+                There is no score or ranking. There are labels that reflect what it's like talking to you.
+                Labels decay over time. More weight is given to more recent labels.
+            </p>
+            <p>
+                No followers. No likes. The feed is newest posts first, no algorithms.</p>
+            <p>
+                <strong>Core principles</strong>
+            </p>
+            <ul>
+              <li>Ideas before identities</li>
+              <li>Conversations before reputation</li>
+              <li>Multi-dimensional labels instead of scores</li>
+              <li>No popularity metrics</li>
+              <li>No follower graph</li>
+              <li>No algorithmic feed</li>
+            </ul>
             {#if !$user}
               <Link href="/register" class="btn-primary">Create Account</Link>
             {/if}
