@@ -119,7 +119,6 @@
 <div class="panel conversation-panel">
   <div class="panel-header conversation-header">
     <span>Conversation with {recipient}</span>
-    <Link href="/messages">Back to messages</Link>
   </div>
 
   {#if loading}

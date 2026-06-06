@@ -745,10 +745,97 @@ a:visited {
   margin: 12px 0 24px;
 }
 
+/* ──────── Messages Layout ──────── */
+
+.messages-layout {
+  max-width: 1100px;
+}
+
+.messages-wrapper {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+}
+
+.messages-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - var(--header-height) - 32px);
+}
+
+.messages-sidebar .panel-header {
+  background: var(--blue-light);
+  padding: 6px 10px;
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.messages-sidebar .panel-body {
+  padding: 10px;
+}
+
+.messages-sidebar .conversation-list {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.messages-sidebar .conversation-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-size: .85rem;
+}
+
+.messages-sidebar .conversation-row:last-child {
+  border-bottom: none;
+}
+
+.messages-sidebar .conversation-row:hover {
+  background: var(--bg-card);
+  text-decoration: none;
+}
+
+.messages-sidebar .conversation-row.active {
+  background: var(--blue-light);
+}
+
+.messages-sidebar .conversation-row strong {
+  font-size: .9rem;
+}
+
+.messages-sidebar .conversation-row span {
+  color: var(--text-muted);
+  font-size: .8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.messages-main {
+  flex: 1;
+  min-width: 0;
+}
+
 /* ──────── Responsive ──────── */
 
 @media (max-width: 720px) {
   .sidebar {
+    display: none;
+  }
+  .messages-sidebar {
     display: none;
   }
   .header-nav {

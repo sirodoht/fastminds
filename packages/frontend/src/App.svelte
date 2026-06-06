@@ -18,6 +18,7 @@
   import Login from "./pages/Login.svelte";
   import Register from "./pages/Register.svelte";
   import NotFound from "./pages/NotFound.svelte";
+  import ConversationSidebar from "./components/ConversationSidebar.svelte";
 
   onMount(async () => {
     await restoreSession();
@@ -94,26 +95,43 @@
       </div>
     </header>
 
-    <div class="layout">
+    <div class="layout" class:messages-layout={matched?.key?.startsWith('/messages')}>
       <main class="content">
-        {#if matched}
-          {#key matched.key}
-            {#each [matched.component] as Component}
-              <Component params={matched.params} />
-            {/each}
-          {/key}
+        {#if matched?.key?.startsWith('/messages')}
+          <div class="messages-wrapper">
+            <ConversationSidebar currentPath={matched.key} />
+            <div class="messages-main">
+              {#if matched}
+                {#key matched.key}
+                  {#each [matched.component] as Component}
+                    <Component params={matched.params} />
+                  {/each}
+                {/key}
+              {/if}
+            </div>
+          </div>
+        {:else}
+          {#if matched}
+            {#key matched.key}
+              {#each [matched.component] as Component}
+                <Component params={matched.params} />
+              {/each}
+            {/key}
+          {/if}
         {/if}
       </main>
-      <aside class="sidebar">
-        <div class="sidebar-card">
-          <h3>fastminds</h3>
-          <p>Discover ideas. Start conversations. Reveal who you're talking to only after 10 messages.</p>
-          <p>No followers. No likes. No algorithmic feed. Just ideas and the people who respond to them.</p>
-          {#if !$user}
-            <Link href="/register" class="btn-primary">Create Account</Link>
-          {/if}
-        </div>
-      </aside>
+      {#if !matched?.key?.startsWith('/messages')}
+        <aside class="sidebar">
+          <div class="sidebar-card">
+            <h3>fastminds</h3>
+            <p>Discover ideas. Start conversations. Reveal who you're talking to only after 10 messages.</p>
+            <p>No followers. No likes. No algorithmic feed. Just ideas and the people who respond to them.</p>
+            {#if !$user}
+              <Link href="/register" class="btn-primary">Create Account</Link>
+            {/if}
+          </div>
+        </aside>
+      {/if}
     </div>
   {/snippet}
 </Router>
