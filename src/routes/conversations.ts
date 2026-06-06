@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { db, generateUUID } from "../db";
 import { authMiddleware, verifiedEmailMiddleware, type AuthEnv } from "../middleware/auth";
-import { sendAdminEmail, logAdminEvent } from "../lib/email";
+import { sendEmail, sendAdminEmail, logAdminEvent } from "../lib/email";
 import { ALL_LABELS } from "./users";
 import { validateUUID } from "../lib/validation";
 
@@ -96,6 +96,21 @@ conversations.post("/from-post/:id", verifiedEmailMiddleware, async (c) => {
       ${`/conversations/${conversation.id}`}
     )
   `;
+
+  // Send email notification to post author
+  const [postAuthor] = await db`
+    SELECT email, email_verified FROM users WHERE id = ${post.author_id}
+  `;
+  if (postAuthor?.email && postAuthor?.email_verified) {
+    const appUrl = process.env.APP_URL || process.env.PUBLIC_URL || "http://localhost:3000";
+    const conversationUrl = `${appUrl}/conversations/${conversation.id}`;
+    await sendEmail({
+      to: postAuthor.email,
+      subject: "Someone responded to your post on fastminds",
+      text: `Someone started a conversation on your post.\n\nView it here: ${conversationUrl}`,
+      html: `<p>Someone started a conversation on your post.</p><p><a href="${conversationUrl}">View conversation</a></p>`,
+    });
+  }
 
   return c.json({
     conversation: {
@@ -386,6 +401,21 @@ ${messages.map((m: any) => `<li><b>${m.sender_username}</b> (${new Date(m.create
       ${`/conversations/${id}`}
     )
   `;
+
+  // Send email notification to the other user
+  const [recipient] = await db`
+    SELECT email, email_verified FROM users WHERE id = ${otherUserId}
+  `;
+  if (recipient?.email && recipient?.email_verified) {
+    const appUrl = process.env.APP_URL || process.env.PUBLIC_URL || "http://localhost:3000";
+    const conversationUrl = `${appUrl}/conversations/${id}`;
+    await sendEmail({
+      to: recipient.email,
+      subject: "New message on fastminds",
+      text: `You have a new message in a conversation.\n\nView it here: ${conversationUrl}`,
+      html: `<p>You have a new message in a conversation.</p><p><a href="${conversationUrl}">View conversation</a></p>`,
+    });
+  }
 
   return c.json({
     message: {
