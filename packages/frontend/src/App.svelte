@@ -23,6 +23,7 @@
   import Settings from "./pages/Settings.svelte";
   import Notifications from "./pages/Notifications.svelte";
   import AdminModeration from "./pages/AdminModeration.svelte";
+  import AdminNotifications from "./pages/AdminNotifications.svelte";
   import AdminConversations from "./pages/AdminConversations.svelte";
   import AdminConversationDetail from "./pages/AdminConversationDetail.svelte";
   import AdminUsers from "./pages/AdminUsers.svelte";
@@ -110,6 +111,7 @@
     "/settings": Settings,
     "/notifications": Notifications,
     "/admin/moderation": AdminModeration,
+    "/admin/notifications": AdminNotifications,
     "/admin/conversations": AdminConversations,
     "/admin/conversations/:id": AdminConversationDetail,
     "/admin/users": AdminUsers,
@@ -146,6 +148,7 @@
               <Link href="/settings" onclick={() => { dropdownOpen = false; }}>Settings</Link>
               {#if $user.isAdmin}
                 <Link href="/admin/moderation" onclick={() => { dropdownOpen = false; }}>Moderation</Link>
+                <Link href="/admin/notifications" onclick={() => { dropdownOpen = false; }}>Notifications</Link>
                 <Link href="/admin/conversations" onclick={() => { dropdownOpen = false; }}>Conversations</Link>
                 <Link href="/admin/users" onclick={() => { dropdownOpen = false; }}>Users</Link>
               {/if}

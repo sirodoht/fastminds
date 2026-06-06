@@ -3,6 +3,7 @@ import { db } from "../db";
 import { adminMiddleware } from "../middleware/admin";
 import type { AuthEnv } from "../middleware/auth";
 import { validateUUID } from "../lib/validation";
+import { sendEmail } from "../lib/email";
 
 const admin = new Hono<AuthEnv>();
 
@@ -189,6 +190,56 @@ admin.get("/conversations/:id", adminMiddleware, async (c) => {
     },
     messages: formattedMessages,
   });
+});
+
+// POST /api/admin/test-email — send a test notification email (admin only)
+admin.post("/test-email", adminMiddleware, async (c) => {
+  const { template, to, variables } = await c.req.json();
+
+  if (!template || !to) {
+    return c.json({ error: "template and to are required" }, 400);
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(to)) {
+    return c.json({ error: "Invalid email address" }, 400);
+  }
+
+  const appUrl = process.env.APP_URL || process.env.PUBLIC_URL || "http://localhost:3000";
+
+  let subject: string;
+  let text: string;
+  let html: string;
+
+  if (template === "new_conversation") {
+    const conversationUrl = variables?.conversationUrl || `${appUrl}/conversations/123`;
+    subject = "Someone responded to your post on fastminds";
+    text = `Someone started a conversation on your post.\n\nView it here: ${conversationUrl}`;
+    html = `<p>Someone started a conversation on your post.</p><p><a href="${conversationUrl}">View conversation</a></p>`;
+  } else if (template === "new_message") {
+    const conversationUrl = variables?.conversationUrl || `${appUrl}/conversations/123`;
+    subject = "New message on fastminds";
+    text = `You have a new message in a conversation.\n\nView it here: ${conversationUrl}`;
+    html = `<p>You have a new message in a conversation.</p><p><a href="${conversationUrl}">View conversation</a></p>`;
+  } else if (template === "new_post") {
+    const postTitle = variables?.postTitle || "Test post";
+    const postBody = variables?.postBody || "This is a test post body.";
+    const postUrl = variables?.postUrl || `${appUrl}/posts/123`;
+    const author = variables?.author || "testuser";
+    subject = `New post on fastminds: ${postTitle}`;
+    text = `A new post has been published on fastminds.\n\nTitle: ${postTitle}\nBody: ${postBody}\nPost URL: ${postUrl}\nAuthor: ${author}`;
+    html = `<p>A new post has been published on fastminds.</p>
+<p><b>Title:</b> ${postTitle}</p>
+<p><b>Body:</b><br><pre>${postBody}</pre></p>
+<p><b>Post URL:</b> <a href="${postUrl}">${postUrl}</a></p>
+<p><b>Author:</b> ${author}</p>`;
+  } else {
+    return c.json({ error: "Invalid template" }, 400);
+  }
+
+  await sendEmail({ to, subject, text, html });
+
+  return c.json({ success: true });
 });
 
 export { admin as adminRoutes };
