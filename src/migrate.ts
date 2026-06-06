@@ -154,5 +154,19 @@ await db`
   ON conversation_feedback (receiver_id, created_at);
 `;
 
-console.log("Migration complete: users, posts, direct_messages, conversations, conversation_messages, post_updates, notifications, and conversation_feedback tables ready");
+await db`
+  CREATE TABLE IF NOT EXISTS admin_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    event_type TEXT NOT NULL,
+    body TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  );
+`;
+
+await db`
+  CREATE INDEX IF NOT EXISTS admin_events_type_created_at_idx
+  ON admin_events (event_type, created_at DESC);
+`;
+
+console.log("Migration complete: users, posts, direct_messages, conversations, conversation_messages, post_updates, notifications, conversation_feedback, and admin_events tables ready");
 process.exit(0);

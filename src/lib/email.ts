@@ -1,3 +1,5 @@
+import { db } from "../db";
+
 interface SendEmailOptions {
   to: string;
   subject: string;
@@ -66,4 +68,20 @@ export async function sendEmail(opts: SendEmailOptions) {
 export function buildVerificationUrl(token: string): string {
   const base = process.env.PUBLIC_URL || "http://localhost:3000";
   return `${base}/verify-email?token=${encodeURIComponent(token)}`;
+}
+
+const isTest = process.env.NODE_ENV === "test" || process.env.CI === "true";
+
+export async function sendAdminEmail(opts: Omit<SendEmailOptions, "to">) {
+  if (isTest) return;
+  const adminEmail = process.env.ADMIN_EMAIL;
+  if (!adminEmail) return;
+  await sendEmail({ to: adminEmail, ...opts });
+}
+
+export async function logAdminEvent(eventType: string, body: string) {
+  await db`
+    INSERT INTO admin_events (event_type, body)
+    VALUES (${eventType}, ${body})
+  `;
 }

@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { verify } from "hono/jwt";
 import { db } from "../db";
 import { authMiddleware, type AuthEnv } from "../middleware/auth";
+import { sendAdminEmail, logAdminEvent } from "../lib/email";
 
 const posts = new Hono<AuthEnv>();
 
@@ -102,6 +103,27 @@ posts.post("/", authMiddleware, async (c) => {
     VALUES (${title.trim()}, ${body || ""}, ${userId})
     RETURNING id, title, body, score, created_at
   `;
+
+  const [author] = await db`
+    SELECT username FROM users WHERE id = ${userId}
+  `;
+
+  const publicUrl = process.env.PUBLIC_URL || "http://localhost:3000";
+  const postUrl = `${publicUrl}/posts/${post.id}`;
+
+  const emailText = `A new post has been published on fastminds.\n\nTitle: ${post.title}\nBody: ${post.body}\nPost URL: ${postUrl}\nAuthor: ${author.username}`;
+  const emailHtml = `<p>A new post has been published on fastminds.</p>
+<p><b>Title:</b> ${post.title}</p>
+<p><b>Body:</b><br><pre>${post.body}</pre></p>
+<p><b>Post URL:</b> <a href="${postUrl}">${postUrl}</a></p>
+<p><b>Author:</b> ${author.username}</p>`;
+
+  await sendAdminEmail({
+    subject: `New post: ${post.title}`,
+    text: emailText,
+    html: emailHtml,
+  });
+  await logAdminEvent("post:create", emailText);
 
   return c.json({ post }, 201);
 });

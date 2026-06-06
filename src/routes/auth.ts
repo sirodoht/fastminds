@@ -3,7 +3,7 @@ import { sign } from "hono/jwt";
 import Stripe from "stripe";
 import { db } from "../db";
 import { authMiddleware, type AuthEnv } from "../middleware/auth";
-import { sendEmail, buildVerificationUrl } from "../lib/email";
+import { sendEmail, sendAdminEmail, logAdminEvent, buildVerificationUrl } from "../lib/email";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2026-05-27.dahlia",
@@ -128,6 +128,12 @@ auth.post("/register/bypass", async (c) => {
 
   await sendVerificationEmail(user.id, email);
 
+  await sendAdminEmail({
+    subject: `New user registered: ${user.username}`,
+    text: `A new user has registered on fastminds.\n\nUsername: ${user.username}\nEmail: ${user.email}\nUser ID: ${user.id}`,
+  });
+  await logAdminEvent("user:register", `Username: ${user.username}, Email: ${user.email}, ID: ${user.id}`);
+
   const secret = process.env.JWT_SECRET!;
   const token = await sign({ sub: user.id, username: user.username }, secret, "HS256");
 
@@ -197,6 +203,12 @@ auth.post("/register/complete", async (c) => {
   await db`DELETE FROM pending_registrations WHERE stripe_checkout_session_id = ${sessionId}`;
 
   await sendVerificationEmail(user.id, pending.email);
+
+  await sendAdminEmail({
+    subject: `New user registered: ${user.username}`,
+    text: `A new user has registered on fastminds.\n\nUsername: ${user.username}\nEmail: ${user.email}\nUser ID: ${user.id}`,
+  });
+  await logAdminEvent("user:register", `Username: ${user.username}, Email: ${user.email}, ID: ${user.id}`);
 
   const secret = process.env.JWT_SECRET!;
   const token = await sign({ sub: user.id, username: user.username }, secret, "HS256");

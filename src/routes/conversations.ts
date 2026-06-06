@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { db } from "../db";
 import { authMiddleware, type AuthEnv } from "../middleware/auth";
+import { sendAdminEmail, logAdminEvent } from "../lib/email";
 import { ALL_LABELS } from "./users";
 
 const REVEAL_THRESHOLD = 10;
@@ -285,9 +286,12 @@ conversations.post("/:id/messages", async (c) => {
   }
 
   const [conversation] = await db`
-    SELECT initiator_id, recipient_id
-    FROM conversations
-    WHERE id = ${id}
+    SELECT c.initiator_id, c.recipient_id, c.post_id,
+           i.username AS initiator_username, r.username AS recipient_username
+    FROM conversations c
+    JOIN users i ON i.id = c.initiator_id
+    JOIN users r ON r.id = c.recipient_id
+    WHERE c.id = ${id}
   `;
 
   if (!conversation) {
@@ -314,6 +318,55 @@ conversations.post("/:id/messages", async (c) => {
   `;
   const messageCount = countRow.count;
   const revealed = messageCount >= REVEAL_THRESHOLD;
+
+  if (messageCount === REVEAL_THRESHOLD) {
+    const [post] = await db`
+      SELECT title, body FROM posts WHERE id = ${conversation.post_id}
+    `;
+
+    const messages = await db`
+      SELECT m.body, m.created_at, u.username AS sender_username
+      FROM conversation_messages m
+      JOIN users u ON u.id = m.sender_id
+      WHERE m.conversation_id = ${id}
+      ORDER BY m.created_at ASC
+    `;
+
+    const messageLines = messages.map((m: any, i: number) =>
+      `${i + 1}. [${m.created_at.toISOString()}] ${m.sender_username}: ${m.body}`
+    ).join("\n");
+
+    const emailText = `A conversation has reached the 10-message reveal threshold.
+
+Conversation ID: ${id}
+Initiator: ${conversation.initiator_username}
+Recipient: ${conversation.recipient_username}
+
+Post Title: ${post?.title || "N/A"}
+Post Body:
+${post?.body || "N/A"}
+
+Messages:
+${messageLines}`;
+
+    const emailHtml = `<p>A conversation has reached the 10-message reveal threshold.</p>
+<p><b>Conversation ID:</b> ${id}<br>
+<b>Initiator:</b> ${conversation.initiator_username}<br>
+<b>Recipient:</b> ${conversation.recipient_username}</p>
+<p><b>Post Title:</b> ${post?.title || "N/A"}</p>
+<p><b>Post Body:</b><br><pre>${post?.body || "N/A"}</pre></p>
+<p><b>Messages:</b></p>
+<ol>
+${messages.map((m: any) => `<li><b>${m.sender_username}</b> (${m.created_at.toISOString()}):<br>${m.body}</li>`).join("\n")}
+</ol>`;
+
+    await sendAdminEmail({
+      subject: "Conversation reached 10 messages",
+      text: emailText,
+      html: emailHtml,
+    });
+    await logAdminEvent("conversation:reveal", emailText);
+  }
 
   // Notification for the other user
   await db`
