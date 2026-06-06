@@ -1,5 +1,4 @@
 <script>
-  import { onMount } from "svelte";
   import { api } from "../lib/api.js";
   import { user } from "../lib/stores.js";
 
@@ -23,8 +22,8 @@
     { value: "new_post", label: "New post on fastminds" },
   ];
 
-  onMount(() => {
-    if ($user?.email) {
+  $effect(() => {
+    if ($user?.email && !toEmail) {
       toEmail = $user.email;
     }
   });
