@@ -49,14 +49,9 @@ onMount(async () => {
           class="conversation-row"
         >
           <div class="conversation-title">{conversation.postTitle}</div>
-          <div class="conversation-meta">
-            {#if conversation.revealed}
-              <span class="revealed-badge">Revealed</span>
-            {:else}
-              <span class="blind-badge">Blind</span>
-            {/if}
-            <span>{conversation.messageCount} messages</span>
-          </div>
+          {#if conversation.otherUsername}
+            <div class="conversation-username">u/{conversation.otherUsername}</div>
+          {/if}
           {#if conversation.lastBody}
             <div class="conversation-preview">{conversation.lastBody}</div>
           {/if}
@@ -88,34 +83,9 @@ onMount(async () => {
     font-weight: 600;
     color: var(--text-primary);
   }
-  .conversation-meta {
-    display: flex;
-    gap: 8px;
-    align-items: center;
+  .conversation-username {
     font-size: 0.8rem;
     color: var(--text-muted);
-  }
-  .blind-badge {
-    display: inline-block;
-    padding: 1px 6px;
-    font-size: 0.7rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    background: var(--accent);
-    color: white;
-    border-radius: 4px;
-  }
-  .revealed-badge {
-    display: inline-block;
-    padding: 1px 6px;
-    font-size: 0.7rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    background: var(--bg-tertiary);
-    color: var(--text-muted);
-    border-radius: 4px;
   }
   .conversation-preview {
     font-size: 0.85rem;
