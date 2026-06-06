@@ -25,7 +25,7 @@ posts.get("/", async (c) => {
   const offset = (page - 1) * limit;
 
   const rows = await db`
-    SELECT posts.id, posts.title, posts.body, posts.author_id, posts.score, posts.archived_at, posts.created_at
+    SELECT posts.id, posts.title, posts.body, posts.author_id, posts.archived_at, posts.created_at
     FROM posts
     ORDER BY posts.created_at DESC
     LIMIT ${limit} OFFSET ${offset}
@@ -51,7 +51,7 @@ posts.get("/:id", async (c) => {
   }
 
   const [post] = await db`
-    SELECT posts.id, posts.title, posts.body, posts.author_id, posts.score, posts.archived_at, posts.created_at
+    SELECT posts.id, posts.title, posts.body, posts.author_id, posts.archived_at, posts.created_at
     FROM posts
     WHERE posts.id = ${id}
   `;
@@ -101,7 +101,7 @@ posts.post("/", authMiddleware, async (c) => {
   const [post] = await db`
     INSERT INTO posts (title, body, author_id)
     VALUES (${title.trim()}, ${body || ""}, ${userId})
-    RETURNING id, title, body, score, created_at
+    RETURNING id, title, body, created_at
   `;
 
   const [author] = await db`

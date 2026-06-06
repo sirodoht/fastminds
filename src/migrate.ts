@@ -6,13 +6,13 @@ await db`
     username TEXT NOT NULL UNIQUE,
 
     password_hash TEXT NOT NULL,
-    bio TEXT DEFAULT '',
-    picture TEXT DEFAULT '',
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
   );
 `;
 
 await db`ALTER TABLE users DROP COLUMN IF EXISTS display_name;`;
+await db`ALTER TABLE users DROP COLUMN IF EXISTS bio;`;
+await db`ALTER TABLE users DROP COLUMN IF EXISTS picture;`;
 
 await db`ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT UNIQUE;`;
 await db`ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN NOT NULL DEFAULT FALSE;`;
@@ -36,16 +36,15 @@ await db`
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title TEXT NOT NULL,
     body TEXT DEFAULT '',
-    links TEXT[] DEFAULT '{}',
     author_id UUID NOT NULL REFERENCES users(id),
-    score INTEGER NOT NULL DEFAULT 0,
     archived_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
   );
 `;
 
-await db`ALTER TABLE posts ADD COLUMN IF NOT EXISTS links TEXT[] DEFAULT '{}';`;
-await db`ALTER TABLE posts ADD COLUMN IF NOT EXISTS archived_at TIMESTAMPTZ;`;
+await db`ALTER TABLE posts DROP COLUMN IF EXISTS links;`;
+await db`ALTER TABLE posts DROP COLUMN IF EXISTS score;`;
+await db`ALTER TABLE posts ADD COLUMN IF NOT EXISTS archived_at TIMESTAMPTZ`;
 
 await db`
   CREATE TABLE IF NOT EXISTS direct_messages (

@@ -840,12 +840,11 @@ for (const post of fakePosts) {
   if (existing) continue;
 
   await db`
-    INSERT INTO posts (title, body, author_id, score, created_at)
+    INSERT INTO posts (title, body, author_id, created_at)
     VALUES (
       ${post.title},
       ${post.body},
       ${authorId},
-      0,
       ${new Date(Date.now() - post.hoursAgo * 60 * 60 * 1000)}
     )
   `;

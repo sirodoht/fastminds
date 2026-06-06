@@ -32,7 +32,7 @@ users.get("/:username", async (c) => {
   const username = c.req.param("username");
 
   const [user] = await db`
-    SELECT id, username, bio, picture, created_at
+    SELECT id, username, created_at
     FROM users
     WHERE username = ${username}
   `;
@@ -45,8 +45,6 @@ users.get("/:username", async (c) => {
     user: {
       id: user.id,
       username: user.username,
-      bio: user.bio,
-      picture: user.picture,
       createdAt: user.created_at,
     },
   });

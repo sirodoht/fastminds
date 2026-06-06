@@ -123,7 +123,7 @@ auth.post("/register/bypass", async (c) => {
   const [user] = await db`
     INSERT INTO users (username, password_hash, email, email_verified, stripe_checkout_session_id, payment_verified)
     VALUES (${username}, ${passwordHash}, ${email}, FALSE, NULL, TRUE)
-    RETURNING id, username, email, email_verified, bio, picture, created_at
+    RETURNING id, username, email, email_verified, created_at
   `;
 
   await sendVerificationEmail(user.id, email);
@@ -132,7 +132,6 @@ auth.post("/register/bypass", async (c) => {
     subject: `New user registered: ${user.username}`,
     text: `A new user has registered on fastminds.\n\nUsername: ${user.username}\nEmail: ${user.email}\nUser ID: ${user.id}`,
   });
-  await logAdminEvent("user:register", `Username: ${user.username}, Email: ${user.email}, ID: ${user.id}`);
 
   const secret = process.env.JWT_SECRET!;
   const token = await sign({ sub: user.id, username: user.username }, secret, "HS256");
@@ -143,8 +142,6 @@ auth.post("/register/bypass", async (c) => {
       username: user.username,
       email: user.email,
       emailVerified: user.email_verified,
-      bio: user.bio,
-      picture: user.picture,
       createdAt: user.created_at,
     },
     token,
@@ -197,7 +194,7 @@ auth.post("/register/complete", async (c) => {
   const [user] = await db`
     INSERT INTO users (username, password_hash, email, email_verified, stripe_checkout_session_id, payment_verified)
     VALUES (${pending.username}, ${pending.password_hash}, ${pending.email}, FALSE, ${sessionId}, TRUE)
-    RETURNING id, username, email, email_verified, bio, picture, created_at
+    RETURNING id, username, email, email_verified, created_at
   `;
 
   await db`DELETE FROM pending_registrations WHERE stripe_checkout_session_id = ${sessionId}`;
@@ -219,8 +216,6 @@ auth.post("/register/complete", async (c) => {
       username: user.username,
       email: user.email,
       emailVerified: user.email_verified,
-      bio: user.bio,
-      picture: user.picture,
       createdAt: user.created_at,
     },
     token,
@@ -235,7 +230,7 @@ auth.post("/login", async (c) => {
   }
 
   const [user] = await db`
-    SELECT id, username, password_hash, email, email_verified, bio, picture, created_at
+    SELECT id, username, password_hash, email, email_verified, created_at
     FROM users WHERE username = ${username}
   `;
   if (!user) {
@@ -256,8 +251,6 @@ auth.post("/login", async (c) => {
       username: user.username,
       email: user.email,
       emailVerified: user.email_verified,
-      bio: user.bio,
-      picture: user.picture,
       createdAt: user.created_at,
     },
     token,
@@ -267,7 +260,7 @@ auth.post("/login", async (c) => {
 auth.get("/me", authMiddleware, async (c) => {
   const userId = c.get("userId");
   const [user] = await db`
-    SELECT id, username, email, email_verified, bio, picture, created_at
+    SELECT id, username, email, email_verified, created_at
     FROM users WHERE id = ${userId}
   `;
   if (!user) {
@@ -280,8 +273,6 @@ auth.get("/me", authMiddleware, async (c) => {
       username: user.username,
       email: user.email,
       emailVerified: user.email_verified,
-      bio: user.bio,
-      picture: user.picture,
       createdAt: user.created_at,
     },
   });
