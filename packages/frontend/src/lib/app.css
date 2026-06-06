@@ -1050,7 +1050,7 @@ a:visited {
   }
   .header-nav a,
   .header-nav button {
-    padding: 4px 6px;
+    padding: 4px 10px;
     font-size: .78rem;
   }
 }
