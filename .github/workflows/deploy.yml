@@ -27,7 +27,9 @@ jobs:
       - name: Deploy to server
         run: |
           ssh root@fastminds.xyz 'su - deploy -c "cd /var/www/fastminds && git pull origin main"'
-          ssh root@fastminds.xyz 'su - deploy -c "cd /var/www/fastminds && bun install --frozen-lockfile"'
+          ssh root@fastminds.xyz 'su - deploy -c "cd /var/www/fastminds && /home/deploy/.bun/bin/bun install --frozen-lockfile"'
+          ssh root@fastminds.xyz 'su - deploy -c "cd /var/www/fastminds && /home/deploy/.bun/bin/bun run src/migrate.ts"'
+          ssh root@fastminds.xyz 'su - deploy -c "cd /var/www/fastminds && /home/deploy/.bun/bin/bun run build:frontend"'
           ssh root@fastminds.xyz 'systemctl restart fastminds'
           ssh root@fastminds.xyz 'systemctl reload caddy'
         env:
