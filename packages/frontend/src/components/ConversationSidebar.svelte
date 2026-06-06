@@ -81,11 +81,6 @@ onDestroy(() => {
         >
           <div class="row-title">{conversation.postTitle}</div>
           <div class="row-meta">
-            {#if conversation.revealed}
-              <span class="revealed-badge">Revealed</span>
-            {:else}
-              <span class="blind-badge">Blind</span>
-            {/if}
             <span class="message-count">{conversation.messageCount}</span>
           </div>
           {#if conversation.lastBody}
@@ -131,28 +126,6 @@ onDestroy(() => {
     align-items: center;
     font-size: 0.75rem;
     color: var(--text-muted);
-  }
-  .blind-badge {
-    display: inline-block;
-    padding: 1px 5px;
-    font-size: 0.65rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    background: var(--accent);
-    color: white;
-    border-radius: 3px;
-  }
-  .revealed-badge {
-    display: inline-block;
-    padding: 1px 5px;
-    font-size: 0.65rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    background: var(--bg-tertiary);
-    color: var(--text-muted);
-    border-radius: 3px;
   }
   .message-count::before {
     content: "•";
