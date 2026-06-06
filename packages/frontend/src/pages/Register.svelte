@@ -3,6 +3,7 @@
   import { register } from "../lib/stores.js";
 
   let username = $state("");
+  let email = $state("");
   let password = $state("");
   let error = $state("");
   let loading = $state(false);
@@ -12,7 +13,7 @@
     error = "";
     loading = true;
     try {
-      await register(username, password);
+      await register(username, password, email);
       navigate("/");
     } catch (err) {
       error = err.message;
@@ -29,6 +30,11 @@
     <div class="form-group">
       <label for="username">Username</label>
       <input id="username" type="text" bind:value={username} placeholder="choose a username" required minlength={3} />
+    </div>
+
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input id="email" type="email" bind:value={email} placeholder="you@example.com" required />
     </div>
 
     <div class="form-group">

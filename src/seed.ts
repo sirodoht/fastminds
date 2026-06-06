@@ -811,9 +811,10 @@ const passwordHash = await Bun.password.hash("password123");
 const usersByUsername = new Map<string, string>();
 
 for (const username of fakeUsers) {
+  const email = `${username}@fastminds.local`;
   const [user] = await db`
-    INSERT INTO users (username, password_hash)
-    VALUES (${username}, ${passwordHash})
+    INSERT INTO users (username, password_hash, email, email_verified)
+    VALUES (${username}, ${passwordHash}, ${email}, TRUE)
     ON CONFLICT (username) DO UPDATE
       SET username = EXCLUDED.username
     RETURNING id, username

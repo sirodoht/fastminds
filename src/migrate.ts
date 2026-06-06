@@ -14,6 +14,10 @@ await db`
 
 await db`ALTER TABLE users DROP COLUMN IF EXISTS display_name;`;
 
+await db`ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT UNIQUE;`;
+await db`ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN NOT NULL DEFAULT FALSE;`;
+await db`ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verification_token TEXT;`;
+
 await db`
   CREATE TABLE IF NOT EXISTS posts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

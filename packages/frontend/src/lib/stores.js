@@ -27,14 +27,27 @@ export async function login(username, password) {
   return data;
 }
 
-export async function register(username, password) {
+export async function register(username, password, email) {
   const data = await api("/api/auth/register", {
     method: "POST",
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify({ username, password, email }),
   });
   token.set(data.token);
   user.set(data.user);
   return data;
+}
+
+export async function verifyEmail(token) {
+  return api("/api/auth/verify-email", {
+    method: "POST",
+    body: JSON.stringify({ token }),
+  });
+}
+
+export async function resendVerification() {
+  return api("/api/auth/resend-verification", {
+    method: "POST",
+  });
 }
 
 export function logout() {

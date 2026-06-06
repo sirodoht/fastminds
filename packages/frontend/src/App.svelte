@@ -7,6 +7,7 @@
     user,
     logout,
     restoreSession,
+    resendVerification,
   } from "./lib/stores.js";
   import Feed from "./pages/Feed.svelte";
   import Messages from "./pages/Messages.svelte";
@@ -18,6 +19,7 @@
   import NewPost from "./pages/NewPost.svelte";
   import Login from "./pages/Login.svelte";
   import Register from "./pages/Register.svelte";
+  import VerifyEmail from "./pages/VerifyEmail.svelte";
   import NotFound from "./pages/NotFound.svelte";
   import ConversationSidebar from "./components/ConversationSidebar.svelte";
 
@@ -62,9 +64,10 @@
   "/posts/:id": PostDetail,
   "/profile/:address": Profile,
   "/new": NewPost,
-  "/login": Login,
-  "/register": Register,
-}} fallback={NotFound}>
+    "/login": Login,
+    "/register": Register,
+    "/verify-email": VerifyEmail,
+  }} fallback={NotFound}>
   {#snippet children(matched)}
     <header class="header">
       <div class="header-logo">
@@ -97,6 +100,12 @@
 
     <div class="layout" class:messages-layout={matched?.key?.startsWith('/conversations/')}>
       <main class="content">
+        {#if $user && !$user.emailVerified}
+          <div class="verification-banner">
+            <span>Please verify your email. Check your inbox or </span>
+            <button onclick={async () => { await resendVerification(); alert('Verification email sent!'); }}>resend</button>
+          </div>
+        {/if}
         {#if matched?.key?.startsWith('/conversations/')}
           <div class="messages-wrapper">
             <ConversationSidebar currentPath={matched.key} />
@@ -165,3 +174,28 @@
     </div>
   {/snippet}
 </Router>
+
+<style>
+  .verification-banner {
+    background: #cee3f8;
+    border: 1px solid #5f99cf;
+    color: #336699;
+    padding: 12px 16px;
+    border-radius: 3px;
+    margin-bottom: 16px;
+    font-size: 0.95rem;
+  }
+  .verification-banner button {
+    background: none;
+    border: none;
+    color: #336699;
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 0.95rem;
+    padding: 0;
+    margin: 0;
+  }
+  .verification-banner button:hover {
+    color: #25476f;
+  }
+</style>
