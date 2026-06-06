@@ -15,6 +15,9 @@ let draft = $state("");
 let connected = $state(false);
 let socket;
 let threadElement = $state();
+let reconnectTimer = null;
+let reconnectAttempts = 0;
+const MAX_RECONNECT_DELAY = 30000;
 
 let feedbackLabels = $state([]);
 let feedbackThumbs = $state(0);
@@ -76,15 +79,31 @@ function connectSocket() {
     return;
   }
 
+  if (socket) {
+    try { socket.close(); } catch {}
+  }
+
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
   socket = new WebSocket(`${protocol}//${window.location.host}/ws/messages?token=${encodeURIComponent(token)}`);
 
   socket.addEventListener("open", () => {
     connected = true;
+    reconnectAttempts = 0;
+  });
+
+  socket.addEventListener("error", () => {
+    try { socket.close(); } catch {}
   });
 
   socket.addEventListener("close", () => {
     connected = false;
+    if (reconnectTimer) return;
+    const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), MAX_RECONNECT_DELAY);
+    reconnectAttempts++;
+    reconnectTimer = setTimeout(() => {
+      reconnectTimer = null;
+      connectSocket();
+    }, delay);
   });
 
   socket.addEventListener("message", async (event) => {
@@ -139,7 +158,11 @@ onMount(async () => {
 });
 
 onDestroy(() => {
-  socket?.close();
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer);
+    reconnectTimer = null;
+  }
+  try { socket?.close(); } catch {}
 });
 
 function sendMessage(e) {
@@ -426,7 +449,7 @@ $effect(() => {
     width: 100%;
     padding: 10px 12px;
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: 3px;
     background: var(--bg-secondary);
     color: var(--text-primary);
     font: inherit;

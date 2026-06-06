@@ -33,14 +33,40 @@
   });
 
   let notificationSocket;
+  let notificationReconnectTimer = null;
+  let notificationReconnectAttempts = 0;
+  const NOTIFICATION_MAX_RECONNECT_DELAY = 30000;
   let dropdownOpen = $state(false);
 
   function connectNotificationSocket() {
     const token = localStorage.getItem("token");
-    if (!token || notificationSocket) return;
+    if (!token) return;
+
+    if (notificationSocket) {
+      try { notificationSocket.close(); } catch {}
+      notificationSocket = null;
+    }
 
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     notificationSocket = new WebSocket(`${protocol}//${window.location.host}/ws/messages?token=${encodeURIComponent(token)}`);
+
+    notificationSocket.addEventListener("open", () => {
+      notificationReconnectAttempts = 0;
+    });
+
+    notificationSocket.addEventListener("error", () => {
+      try { notificationSocket.close(); } catch {}
+    });
+
+    notificationSocket.addEventListener("close", () => {
+      if (notificationReconnectTimer) return;
+      const delay = Math.min(1000 * Math.pow(2, notificationReconnectAttempts), NOTIFICATION_MAX_RECONNECT_DELAY);
+      notificationReconnectAttempts++;
+      notificationReconnectTimer = setTimeout(() => {
+        notificationReconnectTimer = null;
+        connectNotificationSocket();
+      }, delay);
+    });
 
     notificationSocket.addEventListener("message", (event) => {
       const payload = JSON.parse(event.data);
@@ -55,8 +81,13 @@
       refreshNotificationUnreadCount();
       connectNotificationSocket();
     } else {
-      notificationSocket?.close();
+      if (notificationReconnectTimer) {
+        clearTimeout(notificationReconnectTimer);
+        notificationReconnectTimer = null;
+      }
+      try { notificationSocket?.close(); } catch {}
       notificationSocket = null;
+      notificationReconnectAttempts = 0;
     }
   });
 </script>
@@ -175,7 +206,7 @@
                 After 10 messages both participants see each other’s profile.
             </p>
             <p>
-                Interlocutor can assign labels to each others after 10 messages in the same conversation.
+                Interlocutor can assign labels to each other after 10 messages in the same conversation.
             </p>
             <p>
                 There is no score or ranking. There are labels that reflect what it's like talking to you.
