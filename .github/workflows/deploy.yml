@@ -1,0 +1,34 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Load SSH key
+        run: |
+          mkdir -p ~/.ssh/
+          echo "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H fastminds.xyz >> ~/.ssh/known_hosts
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+
+      - name: Deploy to server
+        run: |
+          ssh root@fastminds.xyz 'su - deploy -c "cd /var/www/fastminds && git pull origin main"'
+          ssh root@fastminds.xyz 'su - deploy -c "cd /var/www/fastminds && bun install --frozen-lockfile"'
+          ssh root@fastminds.xyz 'systemctl restart fastminds'
+          ssh root@fastminds.xyz 'systemctl reload caddy'
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
