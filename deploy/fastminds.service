@@ -1,0 +1,22 @@
+[Unit]
+Description=fastminds
+After=network.target
+
+[Service]
+Type=simple
+User=deploy
+Group=deploy
+WorkingDirectory=/var/www/fastminds
+EnvironmentFile=/var/www/fastminds/.env
+
+# Build the frontend before starting the server
+ExecStartPre=/usr/bin/bun run build:frontend
+
+# Start the Bun API server (serves API, WebSocket, and static files)
+ExecStart=/usr/bin/bun run src/index.ts
+
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

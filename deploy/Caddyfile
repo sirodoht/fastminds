@@ -1,0 +1,3 @@
+https://fastminds.xyz {
+	reverse_proxy localhost:3000
+}
