@@ -77,9 +77,7 @@
       </div>
       <div class="profile-info">
         <h1>u/{profileUser.username}</h1>
-        {#if !isOwnProfile}
-          <Link href="/messages/{profileUser.username}" class="btn-secondary" style="margin-top:8px">Message</Link>
-        {/if}
+
       </div>
     </div>
   </div>
@@ -96,8 +94,8 @@
         <div class="stat-label">Started</div>
       </div>
       <div class="stat-item">
-        <div class="stat-value">{stats.dmsReceived}</div>
-        <div class="stat-label">DMs Received</div>
+        <div class="stat-value">{stats.messagesSent}</div>
+        <div class="stat-label">Messages Sent</div>
       </div>
       <div class="stat-item">
         <div class="stat-value">{stats.averageConversationLength.toFixed(1)}</div>

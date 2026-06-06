@@ -852,68 +852,8 @@ for (const post of fakePosts) {
   insertedPosts++;
 }
 
-let insertedMessages = 0;
-
-for (let i = 0; i < conversationPairs.length; i++) {
-  const [userA, userB] = conversationPairs[i];
-  const idA = usersByUsername.get(userA);
-  const idB = usersByUsername.get(userB);
-  if (!idA || !idB) continue;
-
-  const messages = conversationBodies[i];
-  if (!messages) continue;
-
-  for (let j = 0; j < messages.length; j++) {
-    const senderId = j % 2 === 0 ? idA : idB;
-    const recipientId = j % 2 === 0 ? idB : idA;
-    const body = messages[j];
-    const createdAt = new Date(Date.now() - (messages.length - j) * 60 * 60 * 1000);
-
-    await db`
-      INSERT INTO direct_messages (sender_id, recipient_id, body, created_at)
-      VALUES (${senderId}, ${recipientId}, ${body}, ${createdAt})
-    `;
-
-    insertedMessages++;
-  }
-}
-
-let insertedNotifications = 0;
-
-for (let i = 0; i < conversationPairs.length; i++) {
-  const [userA, userB] = conversationPairs[i];
-  const idA = usersByUsername.get(userA);
-  const idB = usersByUsername.get(userB);
-  if (!idA || !idB) continue;
-
-  const messages = conversationBodies[i];
-  if (!messages || messages.length < 2) continue;
-
-  // Each user gets a notification for the most recent message from the other
-  const latestFromB = messages.length - 1;
-  const senderOfLatest = latestFromB % 2 === 0 ? idA : idB;
-  const recipientOfLatest = latestFromB % 2 === 0 ? idB : idA;
-  const actorOfLatest = latestFromB % 2 === 0 ? idA : idB;
-
-  await db`
-    INSERT INTO notifications (user_id, actor_id, type, body, href, created_at)
-    VALUES (
-      ${recipientOfLatest},
-      ${actorOfLatest},
-      ${"message:new"},
-      ${"New message from " + (actorOfLatest === idA ? userA : userB)},
-      ${"/messages/" + (actorOfLatest === idA ? userA : userB)},
-      ${new Date(Date.now() - 30 * 60 * 1000)}
-    )
-  `;
-
-  insertedNotifications++;
-}
-
 console.log(`Seed complete:`);
 console.log(`  ${fakeUsers.length} users ready`);
 console.log(`  ${insertedPosts} new posts inserted`);
-console.log(`  ${insertedMessages} new messages inserted`);
-console.log(`  ${insertedNotifications} new notifications inserted`);
 console.log("Seed login password for fake users: password123");
 process.exit(0);

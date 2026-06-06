@@ -346,7 +346,7 @@ describe("Reputation System", () => {
     expect(status).toBe(200);
     expect(body.totalConversations).toBeDefined();
     expect(body.conversationsStarted).toBeDefined();
-    expect(body.dmsReceived).toBeDefined();
+    expect(body.messagesSent).toBeDefined();
     expect(body.averageConversationLength).toBeDefined();
   });
 

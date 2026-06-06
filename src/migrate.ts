@@ -46,21 +46,8 @@ await db`ALTER TABLE posts DROP COLUMN IF EXISTS links;`;
 await db`ALTER TABLE posts DROP COLUMN IF EXISTS score;`;
 await db`ALTER TABLE posts ADD COLUMN IF NOT EXISTS archived_at TIMESTAMPTZ`;
 
-await db`
-  CREATE TABLE IF NOT EXISTS direct_messages (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    sender_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    recipient_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    body TEXT NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT direct_messages_not_to_self CHECK (sender_id <> recipient_id)
-  );
-`;
-
-await db`
-  CREATE INDEX IF NOT EXISTS direct_messages_participants_created_at_idx
-  ON direct_messages (sender_id, recipient_id, created_at DESC);
-`;
+await db`DROP TABLE IF EXISTS direct_messages CASCADE`;
+await db`DROP INDEX IF EXISTS direct_messages_participants_created_at_idx`;
 
 await db`
   CREATE TABLE IF NOT EXISTS conversations (
@@ -167,5 +154,20 @@ await db`
   ON admin_events (event_type, created_at DESC);
 `;
 
-console.log("Migration complete: users, posts, direct_messages, conversations, conversation_messages, post_updates, notifications, conversation_feedback, and admin_events tables ready");
+await db`
+  CREATE TABLE IF NOT EXISTS bookmarks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    post_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (user_id, post_id)
+  );
+`;
+
+await db`
+  CREATE INDEX IF NOT EXISTS bookmarks_user_created_at_idx
+  ON bookmarks (user_id, created_at DESC);
+`;
+
+console.log("Migration complete: users, posts, conversations, conversation_messages, post_updates, notifications, conversation_feedback, admin_events, and bookmarks tables ready");
 process.exit(0);

@@ -9,16 +9,6 @@ export type MessageSocketData = {
 
 type MessageEvent =
   | {
-      type: "message:new";
-      message: {
-        id: string;
-        body: string;
-        created_at: string;
-        sender: string;
-        recipient: string;
-      };
-    }
-  | {
       type: "conversation:message:new";
       message: {
         id: string;
@@ -128,89 +118,6 @@ export const messageWebSocketHandler = {
 
     if (!payload || typeof payload !== "object" || !("type" in payload)) {
       send(ws, { type: "error", error: "Invalid message payload" });
-      return;
-    }
-
-    if (payload.type === "message:create") {
-      if (
-        !("recipientUsername" in payload) ||
-        typeof payload.recipientUsername !== "string" ||
-        !("body" in payload) ||
-        typeof payload.body !== "string"
-      ) {
-        send(ws, { type: "error", error: "Invalid message payload" });
-        return;
-      }
-
-      const body = payload.body.trim();
-      const recipientUsername = payload.recipientUsername.trim();
-
-      if (!body) {
-        send(ws, { type: "error", error: "Message cannot be empty" });
-        return;
-      }
-
-      if (body.length > 4000) {
-        send(ws, { type: "error", error: "Message is too long" });
-        return;
-      }
-
-      if (!recipientUsername) {
-        send(ws, { type: "error", error: "Recipient is required" });
-        return;
-      }
-
-      const [recipient] = await db`
-        SELECT id, username
-        FROM users
-        WHERE username = ${recipientUsername}
-      `;
-
-      if (!recipient) {
-        send(ws, { type: "error", error: "Recipient not found" });
-        return;
-      }
-
-      if (recipient.id === ws.data.userId) {
-        send(ws, { type: "error", error: "You cannot message yourself" });
-        return;
-      }
-
-      const [message] = await db`
-        INSERT INTO direct_messages (sender_id, recipient_id, body)
-        VALUES (${ws.data.userId}, ${recipient.id}, ${body})
-        RETURNING id, body, created_at
-      `;
-
-      const [notification] = await db`
-        INSERT INTO notifications (user_id, actor_id, type, body, href)
-        VALUES (
-          ${recipient.id},
-          ${ws.data.userId},
-          ${"direct_message"},
-          ${`${ws.data.username} sent you a message`},
-          ${`/messages/${ws.data.username}`}
-        )
-        RETURNING id, type, body, href, read_at, created_at
-      `;
-
-      sendToUsers([ws.data.userId, recipient.id], {
-        type: "message:new",
-        message: {
-          ...message,
-          sender: ws.data.username,
-          recipient: recipient.username,
-        },
-      });
-
-      sendToUsers([recipient.id], {
-        type: "notification:new",
-        notification: {
-          ...notification,
-          actor: ws.data.username,
-        },
-      });
-
       return;
     }
 

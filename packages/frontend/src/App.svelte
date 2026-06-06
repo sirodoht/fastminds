@@ -10,13 +10,12 @@
     resendVerification,
   } from "./lib/stores.js";
   import Feed from "./pages/Feed.svelte";
-  import Messages from "./pages/Messages.svelte";
-  import Conversation from "./pages/Conversation.svelte";
   import Conversations from "./pages/Conversations.svelte";
   import ConversationDetail from "./pages/ConversationDetail.svelte";
   import PostDetail from "./pages/PostDetail.svelte";
   import Profile from "./pages/Profile.svelte";
   import NewPost from "./pages/NewPost.svelte";
+  import Bookmarks from "./pages/Bookmarks.svelte";
   import Login from "./pages/Login.svelte";
   import Register from "./pages/Register.svelte";
   import RegisterSuccess from "./pages/RegisterSuccess.svelte";
@@ -59,13 +58,12 @@
 
 <Router routes={{
   "/": Feed,
-  "/messages": Messages,
-  "/messages/:username": Conversation,
   "/conversations": Conversations,
   "/conversations/:id": ConversationDetail,
-  "/posts/:id": PostDetail,
-  "/profile/:address": Profile,
-  "/new": NewPost,
+    "/posts/:id": PostDetail,
+    "/profile/:address": Profile,
+    "/new": NewPost,
+    "/bookmarks": Bookmarks,
     "/login": Login,
     "/register": Register,
     "/register/success": RegisterSuccess,
@@ -87,6 +85,7 @@
               <span class="notification-badge">{$notificationUnreadCount}</span>
             {/if}
           </Link>
+          <Link href="/bookmarks">Bookmarks</Link>
         {/if}
       </nav>
       <div class="header-right">

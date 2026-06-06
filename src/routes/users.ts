@@ -143,9 +143,9 @@ users.get("/:id/stats", async (c) => {
     WHERE initiator_id = ${userId}
   `;
 
-  const [dmsRow] = await db`
-    SELECT COUNT(*)::int AS count FROM direct_messages
-    WHERE recipient_id = ${userId}
+  const [messagesSentRow] = await db`
+    SELECT COUNT(*)::int AS count FROM conversation_messages
+    WHERE sender_id = ${userId}
   `;
 
   const [avgLengthRow] = await db`
@@ -164,7 +164,7 @@ users.get("/:id/stats", async (c) => {
   return c.json({
     totalConversations: conversationsRow.count,
     conversationsStarted: startedRow.count,
-    dmsReceived: dmsRow.count,
+    messagesSent: messagesSentRow.count,
     averageConversationLength: avgLengthRow.avg ? Number(avgLengthRow.avg) : 0,
   });
 });

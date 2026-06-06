@@ -3,10 +3,10 @@ import { cors } from "hono/cors";
 import { serveStatic } from "hono/bun";
 import { authRoutes } from "./routes/auth";
 import { conversationsRoutes } from "./routes/conversations";
-import { messagesRoutes } from "./routes/messages";
 import { notificationsRoutes } from "./routes/notifications";
 import { postsRoutes } from "./routes/posts";
 import { usersRoutes } from "./routes/users";
+import { bookmarksRoutes } from "./routes/bookmarks";
 import {
   messageWebSocketHandler,
   upgradeMessagesWebSocket,
@@ -19,10 +19,10 @@ app.use("/api/*", cors({ origin: "http://localhost:5173", credentials: true }));
 app.get("/api/health", (c) => c.json({ ok: true }));
 app.route("/api/auth", authRoutes);
 app.route("/api/conversations", conversationsRoutes);
-app.route("/api/messages", messagesRoutes);
 app.route("/api/notifications", notificationsRoutes);
 app.route("/api/posts", postsRoutes);
 app.route("/api/users", usersRoutes);
+app.route("/api/bookmarks", bookmarksRoutes);
 app.use("/*", serveStatic({ root: "./packages/frontend/dist" }));
 app.get("*", async (c) => {
   if (c.req.path.startsWith("/api/")) {
