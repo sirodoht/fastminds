@@ -347,9 +347,9 @@ $effect(() => {
         rows="3"
       ></textarea>
       <div class="message-composer-footer">
-        <span class="socket-status" class:connected={connected}>
-          {connected ? "Live" : "Connecting…"}
-        </span>
+        {#if !connected}
+          <span class="socket-status">Connecting…</span>
+        {/if}
         <button type="submit" class="btn-primary" disabled={!draft.trim() || !connected}>
           Send
         </button>
@@ -463,9 +463,6 @@ $effect(() => {
   .socket-status {
     font-size: 0.8rem;
     color: var(--text-muted);
-  }
-  .socket-status.connected {
-    color: #22c55e;
   }
   .feedback-panel {
     padding: 8px 16px;
