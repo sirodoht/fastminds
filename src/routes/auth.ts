@@ -345,4 +345,44 @@ auth.post("/change-password", authMiddleware, async (c) => {
   return c.json({ success: true });
 });
 
+auth.post("/change-email", authMiddleware, async (c) => {
+  const { email } = await c.req.json();
+
+  if (!email) {
+    return c.json({ error: "email is required" }, 400);
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return c.json({ error: "Invalid email address" }, 400);
+  }
+
+  const userId = c.get("userId");
+  const [currentUser] = await db`
+    SELECT id, email FROM users WHERE id = ${userId}
+  `;
+  if (!currentUser) {
+    return c.json({ error: "User not found" }, 404);
+  }
+
+  if (currentUser.email === email) {
+    return c.json({ error: "Email is already your current email" }, 400);
+  }
+
+  const existingEmail = await db`SELECT id FROM users WHERE email = ${email}`;
+  if (existingEmail.length > 0) {
+    return c.json({ error: "Email already taken" }, 409);
+  }
+
+  await db`
+    UPDATE users
+    SET email = ${email}, email_verified = FALSE, email_verification_token = NULL
+    WHERE id = ${userId}
+  `;
+
+  await sendVerificationEmail(userId, email);
+
+  return c.json({ success: true });
+});
+
 export { auth as authRoutes };
