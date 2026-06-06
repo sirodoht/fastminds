@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { db } from "../db";
-import { authMiddleware, type AuthEnv } from "../middleware/auth";
+import { authMiddleware, verifiedEmailMiddleware, type AuthEnv } from "../middleware/auth";
 import { sendAdminEmail, logAdminEvent } from "../lib/email";
 import { ALL_LABELS } from "./users";
 
@@ -15,7 +15,7 @@ const conversations = new Hono<AuthEnv>();
 conversations.use("*", authMiddleware);
 
 // POST /api/posts/:id/conversations — initiate a conversation from a post
-conversations.post("/from-post/:id", async (c) => {
+conversations.post("/from-post/:id", verifiedEmailMiddleware, async (c) => {
   const userId = c.get("userId");
   const postId = c.req.param("id");
   const { body } = await c.req.json();

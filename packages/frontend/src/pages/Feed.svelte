@@ -54,7 +54,7 @@
             <span class="archived-badge">Archived</span>
           {/if}
           {#if $user && post.author_id === $user.id}
-            <span class="own-badge">Your post</span>
+            <span class="own-badge" title="Your post"></span>
           {/if}
         </div>
       </div>

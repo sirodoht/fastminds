@@ -26,6 +26,28 @@ async function fetchPost() {
   }
 }
 
+async function toggleBookmark() {
+  if (!post) return;
+  if (!post.isBookmarked) {
+    try {
+      await api("/api/bookmarks", {
+        method: "POST",
+        body: JSON.stringify({ postId: post.id }),
+      });
+      post.isBookmarked = true;
+    } catch (err) {
+      alert(err.message || "Failed to bookmark");
+    }
+  } else {
+    try {
+      await api(`/api/bookmarks/${post.id}`, { method: "DELETE" });
+      post.isBookmarked = false;
+    } catch (err) {
+      alert(err.message || "Failed to remove bookmark");
+    }
+  }
+}
+
 async function fetchUpdates() {
   try {
     const data = await api(`/api/posts/${params.id}/updates`);
@@ -71,7 +93,7 @@ async function startConversation(e) {
 
 let isOwnPost = $derived($user && post && $user.id === post.author_id);
 let hasStartedConversation = $derived(post?.hasStartedConversation ?? false);
-let canStartConversation = $derived($user && post && !post.archived_at && !isOwnPost && !hasStartedConversation);
+let canStartConversation = $derived($user && post && !post.archived_at && !isOwnPost && !hasStartedConversation && $user.emailVerified);
 </script>
 
 {#if loading}
@@ -93,6 +115,16 @@ let canStartConversation = $derived($user && post && !post.archived_at && !isOwn
           <span>{new Date(post.created_at).toLocaleString()}</span>
           {#if post.archived_at}
             <span class="archived-badge">Archived</span>
+          {/if}
+          {#if $user}
+            <button
+              class="bookmark-btn-inline"
+              class:active={post.isBookmarked}
+              title={post.isBookmarked ? "Remove bookmark" : "Bookmark"}
+              onclick={toggleBookmark}
+            >
+              {post.isBookmarked ? "★" : "☆"}
+            </button>
           {/if}
         </div>
       </div>
@@ -147,6 +179,8 @@ let canStartConversation = $derived($user && post && !post.archived_at && !isOwn
         </p>
       {:else if isOwnPost}
         <p class="text-muted">This is your post.</p>
+      {:else if $user && !$user.emailVerified}
+        <p class="text-muted">Please verify your email to start a conversation.</p>
       {:else}
         <p class="text-muted"><Link href="/login">Log in</Link> to reply.</p>
       {/if}
@@ -197,5 +231,26 @@ let canStartConversation = $derived($user && post && !post.archived_at && !isOwn
   .text-muted {
     color: var(--text-muted);
     font-size: 0.9rem;
+  }
+  .bookmark-btn-inline {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--text-meta);
+    padding: 0 4px;
+    margin-left: 6px;
+    line-height: 1;
+    vertical-align: middle;
+    transition: color 0.15s;
+  }
+  .bookmark-btn-inline:hover {
+    color: var(--orange);
+  }
+  .bookmark-btn-inline.active {
+    color: var(--orange);
+  }
+  .bookmark-btn-inline.active:hover {
+    color: var(--text-meta);
   }
 </style>

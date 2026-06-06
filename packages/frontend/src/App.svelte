@@ -77,7 +77,9 @@
       </div>
       <nav class="header-nav">
         <Link href="/">Feed</Link>
-        <Link href="/new">New Post</Link>
+        {#if $user && $user.emailVerified}
+          <Link href="/new">New Post</Link>
+        {/if}
         {#if $user}
           <Link href="/conversations" class="notification-link">
             Conversations

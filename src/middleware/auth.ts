@@ -1,5 +1,6 @@
 import { verify } from "hono/jwt";
 import type { MiddlewareHandler } from "hono";
+import { db } from "../db";
 
 export type AuthEnv = {
   Variables: {
@@ -21,4 +22,15 @@ export const authMiddleware: MiddlewareHandler<AuthEnv> = async (c, next) => {
   } catch {
     return c.json({ error: "Invalid or expired token" }, 401);
   }
+};
+
+export const verifiedEmailMiddleware: MiddlewareHandler<AuthEnv> = async (c, next) => {
+  const userId = c.get("userId");
+  const [user] = await db`
+    SELECT email_verified FROM users WHERE id = ${userId}
+  `;
+  if (!user || !user.email_verified) {
+    return c.json({ error: "Please verify your email to perform this action" }, 403);
+  }
+  await next();
 };

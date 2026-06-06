@@ -1,6 +1,6 @@
 <script>
   import { api } from "../lib/api.js";
-  import { logout } from "../lib/stores.js";
+  import { logout, user } from "../lib/stores.js";
   import { navigate } from "../router/index.js";
 
   let oldPassword = $state("");
@@ -144,6 +144,12 @@
   <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border-color);" />
 
   <h2 style="margin-bottom: 1rem; font-size: 1.1rem;">Change email</h2>
+
+  {#if $user?.email}
+    <p style="margin-bottom: 1rem; font-size: 0.9rem; color: #555;">
+      Current email: <strong>{$user.email}</strong>
+    </p>
+  {/if}
 
   <form bind:this={emailFormEl} onsubmit={handleEmailSubmit}>
     <div class="form-group">

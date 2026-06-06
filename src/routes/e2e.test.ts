@@ -9,8 +9,8 @@ const TEST_PORT = 3458;
 async function createUser(username: string) {
   const passwordHash = await Bun.password.hash("password123");
   const [user] = await db`
-    INSERT INTO users (username, password_hash)
-    VALUES (${username}, ${passwordHash})
+    INSERT INTO users (username, password_hash, email_verified)
+    VALUES (${username}, ${passwordHash}, TRUE)
     RETURNING id, username
   `;
   return user;

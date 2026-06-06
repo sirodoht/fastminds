@@ -10,8 +10,8 @@ const TEST_PORT = 3457;
 async function createUser(username: string) {
   const passwordHash = await Bun.password.hash("password123");
   const [user] = await db`
-    INSERT INTO users (username, password_hash)
-    VALUES (${username}, ${passwordHash})
+    INSERT INTO users (username, password_hash, email_verified)
+    VALUES (${username}, ${passwordHash}, TRUE)
     RETURNING id, username
   `;
   return user;
@@ -95,6 +95,47 @@ describe("Conversations", () => {
     await db`DELETE FROM posts WHERE id = ${post.id}`;
     await db`DELETE FROM users WHERE id IN (${userA.id}, ${userB.id})`;
     server.stop(true);
+  });
+
+  test("POST /api/conversations/from-post/:id — rejects unverified email", async () => {
+    const passwordHash = await Bun.password.hash("password123");
+    const [unverifiedUser] = await db`
+      INSERT INTO users (username, password_hash, email_verified)
+      VALUES (${"testuser_unverified"}, ${passwordHash}, FALSE)
+      RETURNING id, username
+    `;
+    const loginRes = await fetch(`http://localhost:${TEST_PORT}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: "testuser_unverified", password: "password123" }),
+    });
+    const { token: unverifiedToken } = await loginRes.json();
+
+    const { status: postStatus, body: postBody } = await api(
+      "/api/posts",
+      unverifiedToken,
+      {
+        method: "POST",
+        body: JSON.stringify({ title: "TEST Unverified Post", body: "body" }),
+      }
+    );
+    expect(postStatus).toBe(403);
+    expect(postBody.error).toContain("verify your email");
+
+    const { status: convStatus, body: convBody } = await api(
+      `/api/conversations/from-post/${post.id}`,
+      unverifiedToken,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          body: "A thoughtful and substantial response to this test post about ideas and conversations.",
+        }),
+      }
+    );
+    expect(convStatus).toBe(403);
+    expect(convBody.error).toContain("verify your email");
+
+    await db`DELETE FROM users WHERE id = ${unverifiedUser.id}`;
   });
 
   test("POST /api/conversations/from-post/:id — initiates conversation from a post", async () => {

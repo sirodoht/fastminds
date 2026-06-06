@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { verify } from "hono/jwt";
 import { db } from "../db";
-import { authMiddleware, type AuthEnv } from "../middleware/auth";
+import { authMiddleware, verifiedEmailMiddleware, type AuthEnv } from "../middleware/auth";
 import { sendAdminEmail, logAdminEvent } from "../lib/email";
 
 const posts = new Hono<AuthEnv>();
@@ -24,12 +24,34 @@ posts.get("/", async (c) => {
   const limit = 20;
   const offset = (page - 1) * limit;
 
-  const rows = await db`
-    SELECT posts.id, posts.title, posts.body, posts.author_id, posts.archived_at, posts.created_at
-    FROM posts
-    ORDER BY posts.created_at DESC
-    LIMIT ${limit} OFFSET ${offset}
-  `;
+  const userId = await optionalUserId(c);
+
+  let rows;
+  if (userId) {
+    rows = await db`
+      SELECT
+        posts.id,
+        posts.title,
+        posts.body,
+        posts.author_id,
+        posts.archived_at,
+        posts.created_at,
+        EXISTS (
+          SELECT 1 FROM bookmarks
+          WHERE bookmarks.user_id = ${userId} AND bookmarks.post_id = posts.id
+        ) AS is_bookmarked
+      FROM posts
+      ORDER BY posts.created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+  } else {
+    rows = await db`
+      SELECT posts.id, posts.title, posts.body, posts.author_id, posts.archived_at, posts.created_at
+      FROM posts
+      ORDER BY posts.created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+  }
 
   const [countRow] = await db`
     SELECT COUNT(*)::int AS total FROM posts
@@ -67,6 +89,7 @@ posts.get("/:id", async (c) => {
   const userId = await optionalUserId(c);
   let hasStartedConversation = false;
   let conversationId = null;
+  let isBookmarked = false;
 
   if (userId) {
     const [existing] = await db`
@@ -78,6 +101,15 @@ posts.get("/:id", async (c) => {
       hasStartedConversation = true;
       conversationId = existing.id;
     }
+
+    const [bookmark] = await db`
+      SELECT 1 FROM bookmarks
+      WHERE user_id = ${userId} AND post_id = ${id}
+      LIMIT 1
+    `;
+    if (bookmark) {
+      isBookmarked = true;
+    }
   }
 
   return c.json({
@@ -86,11 +118,12 @@ posts.get("/:id", async (c) => {
       conversationCount: conversationCount.count,
       hasStartedConversation,
       conversationId,
+      isBookmarked,
     },
   });
 });
 
-posts.post("/", authMiddleware, async (c) => {
+posts.post("/", authMiddleware, verifiedEmailMiddleware, async (c) => {
   const userId = c.get("userId");
   const { title, body } = await c.req.json();
 
@@ -147,7 +180,7 @@ posts.get("/:id/updates", async (c) => {
 });
 
 // POST /api/posts/:id/updates — append an update (author only)
-posts.post("/:id/updates", authMiddleware, async (c) => {
+posts.post("/:id/updates", authMiddleware, verifiedEmailMiddleware, async (c) => {
   const userId = c.get("userId");
   const id = c.req.param("id");
   const { body } = await c.req.json();

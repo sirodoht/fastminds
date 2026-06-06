@@ -8,6 +8,7 @@
 
   onMount(() => {
     if (!$user) navigate("/login");
+    if ($user && !$user.emailVerified) navigate("/");
   });
 
   let title = $state("");
