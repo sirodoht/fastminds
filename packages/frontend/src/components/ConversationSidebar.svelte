@@ -80,9 +80,7 @@ onDestroy(() => {
           class="conversation-row {conversation.id === activeId ? 'active' : ''}"
         >
           <div class="row-title">{conversation.postTitle}</div>
-          <div class="row-meta">
-            <span class="message-count">{conversation.messageCount}</span>
-          </div>
+
           {#if conversation.lastBody}
             <div class="row-preview">{conversation.lastBody}</div>
           {/if}
@@ -119,17 +117,6 @@ onDestroy(() => {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-  .row-meta {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-    font-size: 0.75rem;
-    color: var(--text-muted);
-  }
-  .message-count::before {
-    content: "•";
-    margin-right: 4px;
   }
   .row-preview {
     font-size: 0.8rem;
