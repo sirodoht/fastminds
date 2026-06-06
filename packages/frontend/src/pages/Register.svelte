@@ -1,5 +1,6 @@
 <script>
-  import { Link } from "../router/index.js";
+  import { Link, navigate } from "../router/index.js";
+  import { token, user } from "../lib/stores.js";
 
   let username = $state("");
   let email = $state("");
@@ -7,12 +8,31 @@
   let error = $state("");
   let loading = $state(false);
 
+  const bypass = new URLSearchParams(window.location.search).get("bypass") === "true";
+
   async function handleSubmit(e) {
     e.preventDefault();
     error = "";
     loading = true;
 
     try {
+      if (bypass) {
+        const res = await fetch("/api/auth/register/bypass", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, email, password }),
+        });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body.error || `Request failed (${res.status})`);
+        }
+        const data = await res.json();
+        token.set(data.token);
+        user.set(data.user);
+        navigate("/");
+        return;
+      }
+
       const res = await fetch("/api/auth/register/checkout-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -34,7 +54,11 @@
 <div class="form-card">
   <h1>Create an account</h1>
 
-  <p class="payment-intro">To filter out fake accounts, we charge a one-time <strong>$1.00</strong> fee when you sign up. You'll be redirected to Stripe to complete the payment.</p>
+  {#if bypass}
+    <p class="payment-intro"><strong>Bypass mode:</strong> No payment required. Registration will complete immediately.</p>
+  {:else}
+    <p class="payment-intro">To filter out fake accounts, we charge a one-time <strong>$1.00</strong> fee when you sign up. You'll be redirected to Stripe to complete the payment.</p>
+  {/if}
 
   <form onsubmit={handleSubmit}>
     <div class="form-group">
@@ -57,7 +81,7 @@
     {/if}
 
     <button type="submit" class="btn-primary" disabled={loading}>
-      {loading ? "Redirecting to Stripe…" : "Continue to Stripe payment"}
+      {loading ? (bypass ? "Creating account…" : "Redirecting to Stripe…") : (bypass ? "Create account" : "Continue to Stripe payment")}
     </button>
   </form>
 

@@ -110,6 +110,41 @@ auth.post("/register/checkout-session", async (c) => {
   return c.json({ url: session.url });
 });
 
+auth.post("/register/bypass", async (c) => {
+  const { username, password, email } = await c.req.json();
+
+  const validationError = await validateRegistrationInput(username, password, email);
+  if (validationError) {
+    return c.json({ error: validationError.error }, validationError.status);
+  }
+
+  const passwordHash = await Bun.password.hash(password);
+
+  const [user] = await db`
+    INSERT INTO users (username, password_hash, email, email_verified, stripe_checkout_session_id, payment_verified)
+    VALUES (${username}, ${passwordHash}, ${email}, FALSE, NULL, TRUE)
+    RETURNING id, username, email, email_verified, bio, picture, created_at
+  `;
+
+  await sendVerificationEmail(user.id, email);
+
+  const secret = process.env.JWT_SECRET!;
+  const token = await sign({ sub: user.id, username: user.username }, secret, "HS256");
+
+  return c.json({
+    user: {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      emailVerified: user.email_verified,
+      bio: user.bio,
+      picture: user.picture,
+      createdAt: user.created_at,
+    },
+    token,
+  }, 201);
+});
+
 auth.post("/register/complete", async (c) => {
   const { sessionId } = await c.req.json();
 
