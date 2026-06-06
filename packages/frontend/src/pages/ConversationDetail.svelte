@@ -457,8 +457,9 @@ $effect(() => {
   }
   .message-composer-footer {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
+    gap: 8px;
   }
   .socket-status {
     font-size: 0.8rem;
