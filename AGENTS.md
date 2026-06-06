@@ -19,10 +19,27 @@ Default to using Bun instead of Node.js.
 - `Bun.serve()` supports WebSockets, HTTPS, and routes. Don't use `express`.
 - `bun:sqlite` for SQLite. Don't use `better-sqlite3`.
 - `Bun.redis` for Redis. Don't use `ioredis`.
-- `Bun.sql` for Postgres. Don't use `pg` or `postgres.js`.
 - `WebSocket` is built-in. Don't use `ws`.
 - Prefer `Bun.file` over `node:fs`'s readFile/writeFile
 - Bun.$`ls` instead of execa.
+
+## Database
+
+The app uses a custom `db` tagged template literal wrapping `bun:sqlite`. Queries look like:
+
+```ts
+const rows = await db`
+  SELECT id, title FROM posts
+  WHERE author_id = ${userId}
+  ORDER BY created_at DESC
+`;
+```
+
+Boolean fields are normalized automatically (0/1 → true/false). Array interpolation is supported via `db(array)`.
+
+## Deployment
+
+A systemd service file lives at `deploy/fastminds.service`. The server runs via `bun run src/index.ts` and serves the built frontend from `packages/frontend/dist/`.
 
 ## Testing
 
