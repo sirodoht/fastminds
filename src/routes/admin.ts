@@ -6,6 +6,46 @@ import { validateUUID } from "../lib/validation";
 
 const admin = new Hono<AuthEnv>();
 
+// GET /api/admin/users — list all users (admin only)
+admin.get("/users", adminMiddleware, async (c) => {
+  const page = Math.max(1, parseInt(c.req.query("page") || "1", 10));
+  const limit = 20;
+  const offset = (page - 1) * limit;
+
+  const rows = await db`
+    SELECT
+      id,
+      username,
+      email,
+      email_verified,
+      payment_verified,
+      is_admin,
+      created_at
+    FROM users
+    ORDER BY created_at DESC
+    LIMIT ${limit} OFFSET ${offset}
+  `;
+
+  const [countRow] = await db`SELECT COUNT(*) AS total FROM users`;
+
+  const users = rows.map((row) => ({
+    id: row.id,
+    username: row.username,
+    email: row.email,
+    emailVerified: row.email_verified,
+    paymentVerified: row.payment_verified,
+    isAdmin: row.is_admin,
+    createdAt: row.created_at,
+  }));
+
+  return c.json({
+    users,
+    page,
+    limit,
+    total: countRow.total,
+  });
+});
+
 // GET /api/admin/conversations — list all conversations (admin only)
 admin.get("/conversations", adminMiddleware, async (c) => {
   const page = Math.max(1, parseInt(c.req.query("page") || "1", 10));

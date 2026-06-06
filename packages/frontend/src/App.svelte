@@ -24,6 +24,7 @@
   import AdminModeration from "./pages/AdminModeration.svelte";
   import AdminConversations from "./pages/AdminConversations.svelte";
   import AdminConversationDetail from "./pages/AdminConversationDetail.svelte";
+  import AdminUsers from "./pages/AdminUsers.svelte";
   import NotFound from "./pages/NotFound.svelte";
   import ConversationSidebar from "./components/ConversationSidebar.svelte";
 
@@ -78,6 +79,7 @@
     "/admin/moderation": AdminModeration,
     "/admin/conversations": AdminConversations,
     "/admin/conversations/:id": AdminConversationDetail,
+    "/admin/users": AdminUsers,
   }} fallback={NotFound}>
   {#snippet children(matched)}
     <header class="header">
@@ -111,6 +113,7 @@
               {#if $user.isAdmin}
                 <Link href="/admin/moderation" onclick={() => { dropdownOpen = false; }}>Moderation</Link>
                 <Link href="/admin/conversations" onclick={() => { dropdownOpen = false; }}>Conversations</Link>
+                <Link href="/admin/users" onclick={() => { dropdownOpen = false; }}>Users</Link>
               {/if}
               <button onclick={() => { dropdownOpen = false; logout(); navigate("/"); }}>
                 Log out
@@ -155,7 +158,7 @@
           {/if}
         {/if}
       </main>
-      {#if !matched?.key?.startsWith('/conversations') && matched?.key !== '/new' && !matched?.key?.startsWith('/posts/') && !matched?.key?.startsWith('/profile/')}
+      {#if !matched?.key?.startsWith('/conversations') && matched?.key !== '/new' && !matched?.key?.startsWith('/posts/') && !matched?.key?.startsWith('/profile/') && !matched?.key?.startsWith('/admin')}
         <aside class="sidebar">
           <div class="sidebar-card">
             <h3>fastminds</h3>
