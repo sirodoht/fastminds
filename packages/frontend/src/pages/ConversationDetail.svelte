@@ -151,18 +151,18 @@ function handleComposerKeydown(e) {
       </Link>
     </div>
 
-    <div class="message-thread" bind:this={threadElement}>
-      {#if !conversation.revealed}
-        <div class="blind-banner">
-          <p>Identities are hidden until 10 messages have been exchanged.</p>
-          <p>{conversation.messageCount} / 10 messages</p>
-        </div>
-      {:else}
-        <div class="reveal-banner">
-          <p>Identities revealed!</p>
-        </div>
-      {/if}
+    {#if !conversation.revealed}
+      <div class="blind-banner">
+        <p>Identities are hidden until 10 messages have been exchanged.</p>
+        <p>{conversation.messageCount} / 10 messages</p>
+      </div>
+    {:else}
+      <div class="reveal-banner">
+        <p>Identities revealed!</p>
+      </div>
+    {/if}
 
+    <div class="message-thread" bind:this={threadElement}>
       {#each messages as message (message.id)}
         <div class="message-group" class:mine={message.isMine}>
           {#if conversation.revealed && message.senderUsername}
