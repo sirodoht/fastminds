@@ -20,7 +20,7 @@ async function sendViaPostmark({ to, subject, text, html }: SendEmailOptions) {
       "X-Postmark-Server-Token": apiKey,
     },
     body: JSON.stringify({
-      From: from,
+      From: `Fastminds <${from}>`,
       To: to,
       Subject: subject,
       TextBody: text,
