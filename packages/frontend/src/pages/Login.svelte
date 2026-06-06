@@ -25,7 +25,7 @@
 <div class="form-card">
   <h1>Log in</h1>
 
-  <form on:submit={handleSubmit}>
+  <form onsubmit={handleSubmit}>
     <div class="form-group">
       <label for="username">Username</label>
       <input id="username" type="text" bind:value={username} placeholder="your username" required minlength={3} />
