@@ -1,17 +1,19 @@
 :root {
-  --accent: #2c3e50;
-  --accent-light: #34495e;
-  --blue: #2c5282;
-  --blue-link: #2c5282;
-  --blue-visited: #553a7d;
-  --blue-light: #edf2f7;
-  --bg: #fff;
+  --orange: #ff4500;
+  --orange-light: #ff6a33;
+  --blue: #3366cc;
+  --blue-link: #0000ee;
+  --blue-visited: #551a8b;
+  --blue-light: #cee3f8;
+  --bg: #f0f0f0;
   --bg-card: #fafafa;
   --white: #fff;
-  --border: #e8e8e8;
-  --text: #1a1a1a;
+  --border: #ccc;
+  --text: #222;
   --text-muted: #555;
   --text-meta: #888;
+  --upvote: #ff4500;
+  --downvote: #7193ff;
   --green: #24a0ed;
   --sidebar-bg: #fafafa;
   --header-height: 56px;
@@ -24,14 +26,14 @@
 }
 
 html {
-  font-size: 15px;
+  font-size: 14px;
 }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   background: var(--bg);
   color: var(--text);
-  line-height: 1.6;
+  line-height: 1.5;
   min-height: 100vh;
 }
 
@@ -51,29 +53,29 @@ a:visited {
 /* ──────── Header ──────── */
 
 .header {
-  background: var(--accent);
+  background: var(--orange);
   height: var(--header-height);
   display: flex;
   align-items: center;
-  padding: 0 24px;
+  padding: 0 16px;
   position: sticky;
   top: 0;
   z-index: 100;
-  border-bottom: 1px solid rgba(255,255,255,.1);
+  box-shadow: 0 1px 3px rgba(0,0,0,.15);
 }
 
 .header-logo {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-right: 32px;
+  margin-right: 20px;
 }
 
 .header-logo a {
   color: var(--white);
-  font-size: 1.1rem;
-  font-weight: 600;
-  letter-spacing: 0.5px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.3px;
   text-decoration: none;
 }
 
@@ -84,32 +86,31 @@ a:visited {
 .header-nav {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   flex: 1;
 }
 
 .header-nav a,
 .header-nav button {
-  color: rgba(255,255,255,.85);
+  color: var(--white);
   text-decoration: none;
   font-size: 0.85rem;
-  font-weight: 500;
+  font-weight: 600;
   padding: 4px 10px;
   border-radius: 3px;
   background: transparent;
   border: none;
   cursor: pointer;
-  transition: all .15s;
+  transition: background .15s;
 }
 
 .header-nav a:visited {
-  color: rgba(255,255,255,.85);
+  color: var(--white);
 }
 
 .header-nav a:hover,
 .header-nav button:hover {
-  color: var(--white);
-  background: rgba(255,255,255,.1);
+  background: rgba(255,255,255,.2);
   text-decoration: none;
 }
 
@@ -125,7 +126,7 @@ a:visited {
   padding: 0 5px;
   border-radius: 999px;
   background: var(--white);
-  color: var(--accent);
+  color: var(--orange);
   font-size: .7rem;
   line-height: 16px;
   text-align: center;
@@ -139,14 +140,14 @@ a:visited {
 }
 
 .header-right .username {
-  color: rgba(255,255,255,.7);
+  color: var(--white);
   font-size: .8rem;
   margin-right: 8px;
 }
 
 .header-right a,
 .header-right button {
-  color: rgba(255,255,255,.85);
+  color: var(--white);
   text-decoration: none;
   font-size: .8rem;
   padding: 4px 10px;
@@ -154,17 +155,16 @@ a:visited {
   background: transparent;
   border: none;
   cursor: pointer;
-  transition: all .15s;
+  transition: background .15s;
 }
 
 .header-right a:visited {
-  color: rgba(255,255,255,.85);
+  color: var(--white);
 }
 
 .header-right a:hover,
 .header-right button:hover {
-  color: var(--white);
-  background: rgba(255,255,255,.1);
+  background: rgba(255,255,255,.2);
   text-decoration: none;
 }
 
@@ -172,10 +172,10 @@ a:visited {
 
 .layout {
   display: flex;
-  gap: 32px;
-  max-width: 960px;
-  margin: 32px auto;
-  padding: 0 24px;
+  gap: 16px;
+  max-width: 1100px;
+  margin: 16px auto;
+  padding: 0 16px;
 }
 
 .content {
@@ -184,37 +184,37 @@ a:visited {
 }
 
 .sidebar {
-  width: 260px;
+  width: 280px;
   flex-shrink: 0;
 }
 
 .sidebar-card {
-  background: var(--white);
+  background: var(--sidebar-bg);
   border: 1px solid var(--border);
-  padding: 16px;
-  margin-bottom: 16px;
+  border-radius: 3px;
+  padding: 12px;
+  margin-bottom: 12px;
   font-size: .85rem;
-  line-height: 1.5;
 }
 
 .sidebar-card h3 {
-  font-size: .9rem;
+  font-size: .95rem;
   font-weight: 600;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   color: var(--text);
   border-bottom: 1px solid var(--border);
-  padding-bottom: 8px;
+  padding-bottom: 6px;
 }
 
 .sidebar-card p {
   color: var(--text-muted);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .sidebar-card .btn-primary {
   display: block;
   text-align: center;
-  margin-top: 10px;
+  margin-top: 8px;
 }
 
 /* ──────── Cards / Panels ──────── */
@@ -222,12 +222,13 @@ a:visited {
 .panel {
   background: var(--white);
   border: 1px solid var(--border);
-  margin-bottom: 16px;
+  border-radius: 3px;
+  margin-bottom: 12px;
 }
 
 .panel-header {
   background: var(--blue-light);
-  padding: 8px 12px;
+  padding: 6px 10px;
   font-size: .85rem;
   font-weight: 600;
   color: var(--text);
@@ -235,7 +236,7 @@ a:visited {
 }
 
 .panel-body {
-  padding: 12px;
+  padding: 10px;
 }
 
 /* ──────── Post (feed item) ──────── */
@@ -243,51 +244,50 @@ a:visited {
 .post {
   display: flex;
   background: var(--white);
-  border-bottom: 1px solid var(--border);
-  padding: 16px 0;
-  transition: none;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  margin-bottom: 8px;
+  transition: border-color .15s;
 }
 
-.post:last-child {
-  border-bottom: none;
+.post:hover {
+  border-color: #aaa;
 }
 
 .post-main {
   flex: 1;
+  padding: 8px 10px;
   min-width: 0;
 }
 
 .post-title {
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 500;
-  margin-bottom: 4px;
-  line-height: 1.35;
-  color: var(--text);
+  margin-bottom: 3px;
+  line-height: 1.3;
 }
 
 .post-title a {
-  color: var(--text);
-  text-decoration: none;
-}
-
-.post-title a:visited {
-  color: var(--text);
-}
-
-.post-title a:hover {
   color: var(--blue-link);
   text-decoration: none;
 }
 
+.post-title a:visited {
+  color: var(--blue-visited);
+}
+
+.post-title a:hover {
+  text-decoration: underline;
+}
+
 .post-meta {
-  font-size: .8rem;
+  font-size: .75rem;
   color: var(--text-meta);
-  margin-top: 4px;
 }
 
 .post-meta a {
   color: var(--text-muted);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .post-meta a:hover {
@@ -306,9 +306,9 @@ a:visited {
 }
 
 .post-detail .post-body {
-  padding: 20px 0;
-  font-size: .95rem;
-  line-height: 1.7;
+  padding: 12px 10px;
+  font-size: .9rem;
+  line-height: 1.6;
   color: var(--text);
   white-space: pre-wrap;
 }
@@ -316,32 +316,32 @@ a:visited {
 /* ──────── Comments ──────── */
 
 .comment {
-  padding: 12px 0;
+  padding: 8px 0;
   margin-left: 16px;
   border-left: 2px solid var(--border);
   padding-left: 12px;
 }
 
 .comment-meta {
-  font-size: .8rem;
+  font-size: .75rem;
   color: var(--text-meta);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .comment-meta a {
   color: var(--text-muted);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .comment-body {
-  font-size: .9rem;
-  line-height: 1.6;
+  font-size: .85rem;
+  line-height: 1.5;
   color: var(--text);
 }
 
 .comment-actions {
-  margin-top: 6px;
-  font-size: .8rem;
+  margin-top: 4px;
+  font-size: .75rem;
 }
 
 .comment-actions button {
@@ -350,12 +350,12 @@ a:visited {
   color: var(--text-meta);
   cursor: pointer;
   padding: 2px 6px;
-  font-size: .8rem;
+  font-size: .75rem;
   border-radius: 2px;
 }
 
 .comment-actions button:hover {
-  background: var(--bg-card);
+  background: var(--bg);
   color: var(--text-muted);
 }
 
@@ -364,35 +364,36 @@ a:visited {
 .form-card {
   background: var(--white);
   border: 1px solid var(--border);
-  padding: 24px;
+  border-radius: 3px;
+  padding: 20px;
   max-width: 420px;
 }
 
 .form-card h1 {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 600;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   color: var(--text);
 }
 
 .form-group {
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .form-group label {
   display: block;
-  font-size: .85rem;
-  font-weight: 500;
+  font-size: .8rem;
+  font-weight: 600;
   color: var(--text-muted);
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 
 .form-group input,
 .form-group textarea,
 .form-group select {
   width: 100%;
-  padding: 8px 10px;
-  font-size: .9rem;
+  padding: 7px 9px;
+  font-size: .85rem;
   border: 1px solid var(--border);
   border-radius: 3px;
   background: var(--white);
@@ -405,7 +406,7 @@ a:visited {
 .form-group input:focus,
 .form-group textarea:focus {
   border-color: var(--blue);
-  box-shadow: 0 0 0 2px rgba(44,82,130,.1);
+  box-shadow: 0 0 0 2px rgba(51,102,204,.15);
 }
 
 .form-group textarea {
@@ -414,14 +415,14 @@ a:visited {
 }
 
 .form-error {
-  color: #c0392b;
-  font-size: .85rem;
-  margin-bottom: 12px;
+  color: var(--orange);
+  font-size: .8rem;
+  margin-bottom: 10px;
 }
 
 .form-footer {
-  margin-top: 14px;
-  font-size: .85rem;
+  margin-top: 12px;
+  font-size: .8rem;
   color: var(--text-muted);
 }
 
@@ -433,11 +434,11 @@ a:visited {
 
 .btn-primary {
   display: inline-block;
-  padding: 7px 18px;
+  padding: 6px 16px;
   font-size: .85rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--white);
-  background: var(--accent);
+  background: var(--orange);
   border: none;
   border-radius: 3px;
   cursor: pointer;
@@ -446,7 +447,7 @@ a:visited {
 }
 
 .btn-primary:hover {
-  background: var(--accent-light);
+  background: var(--orange-light);
   text-decoration: none;
 }
 
@@ -457,11 +458,11 @@ a:visited {
 
 .btn-secondary {
   display: inline-block;
-  padding: 6px 14px;
+  padding: 5px 14px;
   font-size: .8rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-muted);
-  background: var(--white);
+  background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 3px;
   cursor: pointer;
@@ -470,8 +471,8 @@ a:visited {
 }
 
 .btn-secondary:hover {
-  background: var(--bg-card);
-  border-color: #ccc;
+  background: var(--bg);
+  border-color: #aaa;
   text-decoration: none;
 }
 
@@ -480,10 +481,11 @@ a:visited {
 .profile-card {
   background: var(--white);
   border: 1px solid var(--border);
+  border-radius: 3px;
 }
 
 .profile-header {
-  padding: 24px;
+  padding: 20px;
   display: flex;
   gap: 16px;
   align-items: flex-start;
@@ -530,7 +532,7 @@ a:visited {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 12px;
+  padding: 10px;
   border-bottom: 1px solid var(--border);
   color: var(--text);
 }
@@ -559,7 +561,7 @@ a:visited {
   justify-content: space-between;
   gap: 12px;
   align-items: center;
-  padding: 12px 16px;
+  padding: 10px 16px;
 }
 
 .conversation-header a {
@@ -658,7 +660,7 @@ a:visited {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  padding: 12px;
+  padding: 10px;
   border-bottom: 1px solid var(--border);
   color: var(--text);
 }
@@ -673,12 +675,14 @@ a:visited {
 }
 
 .notification-row.unread {
-  background: #f8f9fa;
+  background: #fff7f3;
 }
 
 .notification-row small {
   color: var(--text-meta);
 }
+
+
 
 /* ──────── Pagination ──────── */
 
@@ -687,18 +691,19 @@ a:visited {
   justify-content: center;
   align-items: center;
   gap: 12px;
-  margin-top: 16px;
-  padding: 12px;
+  margin-top: 12px;
+  padding: 10px;
   background: var(--white);
   border: 1px solid var(--border);
+  border-radius: 3px;
 }
 
 .pagination button {
   padding: 5px 14px;
   font-size: .8rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-muted);
-  background: var(--white);
+  background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 3px;
   cursor: pointer;
@@ -706,8 +711,8 @@ a:visited {
 }
 
 .pagination button:hover:not(:disabled) {
-  background: var(--bg-card);
-  border-color: #ccc;
+  background: var(--bg);
+  border-color: #aaa;
 }
 
 .pagination button:disabled {
@@ -731,7 +736,7 @@ a:visited {
 
 .not-found h1 {
   font-size: 3rem;
-  color: var(--accent);
+  color: var(--orange);
   font-weight: 700;
 }
 
