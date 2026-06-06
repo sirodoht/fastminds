@@ -80,7 +80,9 @@ onDestroy(() => {
           class="conversation-row {conversation.id === activeId ? 'active' : ''}"
         >
           <div class="row-title">{conversation.postTitle}</div>
-
+          {#if conversation.otherUsername}
+            <div class="row-username">u/{conversation.otherUsername}</div>
+          {/if}
           {#if conversation.lastBody}
             <div class="row-preview">{conversation.lastBody}</div>
           {/if}
@@ -114,6 +116,13 @@ onDestroy(() => {
     font-weight: 600;
     font-size: 0.9rem;
     color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .row-username {
+    font-size: 0.75rem;
+    color: var(--text-muted);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

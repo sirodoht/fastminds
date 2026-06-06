@@ -116,11 +116,15 @@ conversations.get("/", async (c) => {
       conversations.recipient_id,
       conversations.created_at,
       posts.title AS post_title,
+      initiator.username AS initiator_username,
+      recipient.username AS recipient_username,
       last_messages.last_body,
       last_messages.last_created_at,
       (SELECT COUNT(*)::int FROM conversation_messages WHERE conversation_id = conversations.id) AS message_count
     FROM conversations
     JOIN posts ON conversations.post_id = posts.id
+    JOIN users AS initiator ON conversations.initiator_id = initiator.id
+    JOIN users AS recipient ON conversations.recipient_id = recipient.id
     LEFT JOIN last_messages ON last_messages.conversation_id = conversations.id AND last_messages.rn = 1
     WHERE conversations.initiator_id = ${userId}
        OR conversations.recipient_id = ${userId}
@@ -131,6 +135,7 @@ conversations.get("/", async (c) => {
     const revealed = row.message_count >= REVEAL_THRESHOLD;
     const isInitiator = row.initiator_id === userId;
     const otherUserId = isInitiator ? row.recipient_id : row.initiator_id;
+    const otherUsername = isInitiator ? row.recipient_username : row.initiator_username;
 
     return {
       id: row.id,
@@ -142,6 +147,7 @@ conversations.get("/", async (c) => {
       messageCount: row.message_count,
       revealed,
       otherUserId: revealed ? otherUserId : null,
+      otherUsername: revealed ? otherUsername : null,
     };
   });
 
