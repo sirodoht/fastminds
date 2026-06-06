@@ -28,13 +28,37 @@
     }
   });
 
+  async function fetchRandomIds() {
+    try {
+      const [convData, postData] = await Promise.all([
+        api("/api/conversations?limit=1"),
+        api("/api/posts?limit=1"),
+      ]);
+      const base = window.location.origin;
+      if (convData.conversations?.length > 0) {
+        const id = convData.conversations[0].id;
+        conversationUrl = `${base}/conversations/${id}`;
+      }
+      if (postData.posts?.length > 0) {
+        const id = postData.posts[0].id;
+        postUrl = `${base}/posts/${id}`;
+        postTitle = postData.posts[0].title;
+        postBody = postData.posts[0].body;
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  fetchRandomIds();
+
   function getDefaultUrl() {
     const base = window.location.origin;
     if (selectedTemplate === "new_conversation" || selectedTemplate === "new_message") {
-      return `${base}/conversations/123`;
+      return conversationUrl || `${base}/conversations/123`;
     }
     if (selectedTemplate === "new_post") {
-      return `${base}/posts/123`;
+      return postUrl || `${base}/posts/123`;
     }
     return "";
   }
@@ -99,7 +123,7 @@
       {#if selectedTemplate === "new_conversation" || selectedTemplate === "new_message"}
         <div class="form-group">
           <label for="conversation-url">Conversation URL</label>
-          <input id="conversation-url" type="url" bind:value={conversationUrl} placeholder={getDefaultUrl()} />
+          <input id="conversation-url" type="url" bind:value={conversationUrl} placeholder={conversationUrl || getDefaultUrl()} />
         </div>
       {/if}
 
@@ -114,7 +138,7 @@
         </div>
         <div class="form-group">
           <label for="post-url">Post URL</label>
-          <input id="post-url" type="url" bind:value={postUrl} placeholder={getDefaultUrl()} />
+          <input id="post-url" type="url" bind:value={postUrl} placeholder={postUrl || getDefaultUrl()} />
         </div>
         <div class="form-group">
           <label for="post-author">Author</label>
