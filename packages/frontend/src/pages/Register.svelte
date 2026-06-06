@@ -25,7 +25,7 @@
 <div class="form-card">
   <h1>Create an account</h1>
 
-  <form onsubmit={handleSubmit}>
+  <form on:submit={handleSubmit}>
     <div class="form-group">
       <label for="username">Username</label>
       <input id="username" type="text" bind:value={username} placeholder="choose a username" required minlength={3} />

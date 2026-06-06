@@ -138,7 +138,7 @@
       {/each}
     </div>
 
-    <form class="message-composer" onsubmit={sendMessage}>
+    <form class="message-composer" on:submit={sendMessage}>
       <textarea
         bind:value={draft}
         onkeydown={handleComposerKeydown}
