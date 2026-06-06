@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { db } from "../db";
 import { authMiddleware, type AuthEnv } from "../middleware/auth";
+import { validateUUID } from "../lib/validation";
 
 const bookmarks = new Hono<AuthEnv>();
 
@@ -43,7 +44,8 @@ bookmarks.post("/", async (c) => {
     return c.json({ error: "postId is required" }, 400);
   }
 
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(postId)) {
+  const validationError = validateUUID(postId);
+  if (validationError) {
     return c.json({ error: "Post not found" }, 404);
   }
 
@@ -75,7 +77,8 @@ bookmarks.delete("/:postId", async (c) => {
   const userId = c.get("userId");
   const postId = c.req.param("postId");
 
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(postId)) {
+  const validationError = validateUUID(postId);
+  if (validationError) {
     return c.json({ error: "Post not found" }, 404);
   }
 
@@ -88,7 +91,7 @@ bookmarks.delete("/:postId", async (c) => {
     return c.json({ error: "Bookmark not found" }, 404);
   }
 
-  return c.json({ ok: true });
+  return c.json({ success: true });
 });
 
 export { bookmarks as bookmarksRoutes };

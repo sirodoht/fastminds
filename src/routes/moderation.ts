@@ -3,6 +3,7 @@ import { db } from "../db";
 import { authMiddleware, type AuthEnv } from "../middleware/auth";
 import { adminMiddleware } from "../middleware/admin";
 import { sendAdminEmail, logAdminEvent } from "../lib/email";
+import { validateUUID } from "../lib/validation";
 
 const VALID_REASONS = new Set([
   "Spam",
@@ -41,7 +42,8 @@ moderation.post("/report", authMiddleware, async (c) => {
 
   // Validate target exists and reporter has visibility
   if (target_type === "post") {
-    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(target_id)) {
+    const validationError = validateUUID(target_id);
+    if (validationError) {
       return c.json({ error: "Post not found" }, 404);
     }
     const [post] = await db`SELECT id, title, body FROM posts WHERE id = ${target_id}`;
@@ -50,7 +52,8 @@ moderation.post("/report", authMiddleware, async (c) => {
     }
     targetPost = post;
   } else if (target_type === "message") {
-    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(target_id)) {
+    const validationError = validateUUID(target_id);
+    if (validationError) {
       return c.json({ error: "Message not found" }, 404);
     }
     const [message] = await db`
@@ -68,7 +71,8 @@ moderation.post("/report", authMiddleware, async (c) => {
     }
     targetMessage = message;
   } else if (target_type === "account") {
-    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(target_id)) {
+    const validationError = validateUUID(target_id);
+    if (validationError) {
       return c.json({ error: "User not found" }, 404);
     }
     const [user] = await db`SELECT id, username FROM users WHERE id = ${target_id}`;
@@ -289,7 +293,8 @@ moderation.post("/reports/:id/resolve", adminMiddleware, async (c) => {
   const id = c.req.param("id");
   const { action_type, note } = await c.req.json();
 
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+  const validationError = validateUUID(id);
+  if (validationError) {
     return c.json({ error: "Report not found" }, 404);
   }
 

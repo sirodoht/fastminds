@@ -1,30 +1,17 @@
 import { Hono } from "hono";
-import { verify } from "hono/jwt";
 import { db } from "../db";
-import { authMiddleware, verifiedEmailMiddleware, type AuthEnv } from "../middleware/auth";
+import { authMiddleware, optionalAuthMiddleware, verifiedEmailMiddleware, type AuthEnv } from "../middleware/auth";
 import { sendAdminEmail, logAdminEvent } from "../lib/email";
+import { validateUUID } from "../lib/validation";
 
 const posts = new Hono<AuthEnv>();
 
-async function optionalUserId(c: any): Promise<string | null> {
-  const authHeader = c.req.header("Authorization");
-  if (!authHeader?.startsWith("Bearer ")) return null;
-  try {
-    const token = authHeader.slice(7);
-    const secret = process.env.JWT_SECRET!;
-    const payload = await verify(token, secret, "HS256");
-    return payload.sub as string;
-  } catch {
-    return null;
-  }
-}
-
-posts.get("/", async (c) => {
+posts.get("/", optionalAuthMiddleware, async (c) => {
   const page = Math.max(1, parseInt(c.req.query("page") || "1", 10));
   const limit = 20;
   const offset = (page - 1) * limit;
 
-  const userId = await optionalUserId(c);
+  const userId = c.get("userId");
 
   let rows;
   if (userId) {
@@ -76,10 +63,11 @@ posts.get("/", async (c) => {
   });
 });
 
-posts.get("/:id", async (c) => {
+posts.get("/:id", optionalAuthMiddleware, async (c) => {
   const id = c.req.param("id");
 
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+  const validationError = validateUUID(id);
+  if (validationError) {
     return c.json({ error: "Post not found" }, 404);
   }
 
@@ -93,7 +81,7 @@ posts.get("/:id", async (c) => {
     return c.json({ error: "Post not found" }, 404);
   }
 
-  const userId = await optionalUserId(c);
+  const userId = c.get("userId");
   let hasStartedConversation = false;
   let conversationId = null;
   let isBookmarked = false;
@@ -174,7 +162,8 @@ posts.post("/", authMiddleware, verifiedEmailMiddleware, async (c) => {
 posts.get("/:id/updates", async (c) => {
   const id = c.req.param("id");
 
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+  const validationError = validateUUID(id);
+  if (validationError) {
     return c.json({ error: "Post not found" }, 404);
   }
 
@@ -198,7 +187,8 @@ posts.post("/:id/updates", authMiddleware, verifiedEmailMiddleware, async (c) =>
     return c.json({ error: "Update body is required" }, 400);
   }
 
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+  const validationError = validateUUID(id);
+  if (validationError) {
     return c.json({ error: "Post not found" }, 404);
   }
 
@@ -254,7 +244,8 @@ posts.post("/:id/archive", authMiddleware, async (c) => {
   const userId = c.get("userId");
   const id = c.req.param("id");
 
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+  const validationError = validateUUID(id);
+  if (validationError) {
     return c.json({ error: "Post not found" }, 404);
   }
 
@@ -287,7 +278,8 @@ posts.post("/:id/unarchive", authMiddleware, async (c) => {
   const userId = c.get("userId");
   const id = c.req.param("id");
 
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+  const validationError = validateUUID(id);
+  if (validationError) {
     return c.json({ error: "Post not found" }, 404);
   }
 

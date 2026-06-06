@@ -3,6 +3,7 @@ import { db } from "../db";
 import { authMiddleware, verifiedEmailMiddleware, type AuthEnv } from "../middleware/auth";
 import { sendAdminEmail, logAdminEvent } from "../lib/email";
 import { ALL_LABELS } from "./users";
+import { validateUUID } from "../lib/validation";
 
 const REVEAL_THRESHOLD = 10;
 
@@ -29,7 +30,8 @@ conversations.post("/from-post/:id", verifiedEmailMiddleware, async (c) => {
   }
 
   // Validate post id format
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(postId)) {
+  const validationError = validateUUID(postId);
+  if (validationError) {
     return c.json({ error: "Post not found" }, 404);
   }
 
@@ -176,7 +178,8 @@ conversations.get("/:id", async (c) => {
   const userId = c.get("userId");
   const id = c.req.param("id");
 
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+  const validationError = validateUUID(id);
+  if (validationError) {
     return c.json({ error: "Conversation not found" }, 404);
   }
 
@@ -281,7 +284,8 @@ conversations.post("/:id/messages", async (c) => {
     return c.json({ error: "Message is too long" }, 400);
   }
 
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+  const validationError = validateUUID(id);
+  if (validationError) {
     return c.json({ error: "Conversation not found" }, 404);
   }
 
@@ -400,7 +404,8 @@ conversations.get("/:id/feedback", async (c) => {
   const userId = c.get("userId");
   const id = c.req.param("id");
 
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+  const validationError = validateUUID(id);
+  if (validationError) {
     return c.json({ error: "Conversation not found" }, 404);
   }
 
@@ -445,7 +450,8 @@ conversations.post("/:id/feedback", async (c) => {
   const id = c.req.param("id");
   const { labels, thumbs } = await c.req.json();
 
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+  const validationError = validateUUID(id);
+  if (validationError) {
     return c.json({ error: "Conversation not found" }, 404);
   }
 

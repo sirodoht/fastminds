@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { db } from "../db";
 import { adminMiddleware } from "../middleware/admin";
 import type { AuthEnv } from "../middleware/auth";
+import { validateUUID } from "../lib/validation";
 
 const admin = new Hono<AuthEnv>();
 
@@ -72,7 +73,8 @@ admin.get("/conversations", adminMiddleware, async (c) => {
 admin.get("/conversations/:id", adminMiddleware, async (c) => {
   const id = c.req.param("id");
 
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+  const validationError = validateUUID(id);
+  if (validationError) {
     return c.json({ error: "Conversation not found" }, 404);
   }
 

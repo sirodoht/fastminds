@@ -24,6 +24,21 @@ export const authMiddleware: MiddlewareHandler<AuthEnv> = async (c, next) => {
   }
 };
 
+export const optionalAuthMiddleware: MiddlewareHandler<AuthEnv> = async (c, next) => {
+  const authHeader = c.req.header("Authorization");
+  if (authHeader?.startsWith("Bearer ")) {
+    try {
+      const token = authHeader.slice(7);
+      const secret = process.env.JWT_SECRET!;
+      const payload = await verify(token, secret, "HS256");
+      c.set("userId", payload.sub as string);
+    } catch {
+      // ignore invalid token for optional auth
+    }
+  }
+  await next();
+};
+
 export const verifiedEmailMiddleware: MiddlewareHandler<AuthEnv> = async (c, next) => {
   const userId = c.get("userId");
   const [user] = await db`

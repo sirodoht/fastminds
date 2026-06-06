@@ -61,7 +61,7 @@ notifications.post("/read-all", async (c) => {
       AND read_at IS NULL
   `;
 
-  return c.json({ ok: true, unreadCount: 0 });
+  return c.json({ success: true, unreadCount: 0 });
 });
 
 export { notifications as notificationsRoutes };

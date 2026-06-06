@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { db } from "../db";
 import { authMiddleware, type AuthEnv } from "../middleware/auth";
+import { validateUsername, validateUUID } from "../lib/validation";
 
 const REVEAL_THRESHOLD = 10;
 const MIN_FEEDBACK_FOR_VISIBILITY = 10;
@@ -31,6 +32,11 @@ users.use("*", authMiddleware);
 users.get("/:username", async (c) => {
   const username = c.req.param("username");
 
+  const validationError = validateUsername(username);
+  if (validationError) {
+    return c.json({ error: validationError }, 400);
+  }
+
   const [user] = await db`
     SELECT id, username, created_at
     FROM users
@@ -54,7 +60,8 @@ users.get("/:username", async (c) => {
 users.get("/:id/reputation", async (c) => {
   const userId = c.req.param("id");
 
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userId)) {
+  const validationError = validateUUID(userId);
+  if (validationError) {
     return c.json({ error: "User not found" }, 404);
   }
 
@@ -122,7 +129,8 @@ users.get("/:id/reputation", async (c) => {
 users.get("/:id/stats", async (c) => {
   const userId = c.req.param("id");
 
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userId)) {
+  const validationError = validateUUID(userId);
+  if (validationError) {
     return c.json({ error: "User not found" }, 404);
   }
 
