@@ -41,9 +41,9 @@
   {:else if conversation}
     <div class="admin-conv-info">
       <div class="admin-conv-users">
-        <a href="/profile/{conversation.initiatorUsername}" onclick={(e) => { e.preventDefault(); navigate(`/profile/${conversation.initiatorUsername}`); }}>u/{conversation.initiatorUsername}</a>
+        <a href="/u/{conversation.initiatorUsername}" onclick={(e) => { e.preventDefault(); navigate(`/u/${conversation.initiatorUsername}`); }}>u/{conversation.initiatorUsername}</a>
         <span class="arrow">→</span>
-        <a href="/profile/{conversation.recipientUsername}" onclick={(e) => { e.preventDefault(); navigate(`/profile/${conversation.recipientUsername}`); }}>u/{conversation.recipientUsername}</a>
+        <a href="/u/{conversation.recipientUsername}" onclick={(e) => { e.preventDefault(); navigate(`/u/${conversation.recipientUsername}`); }}>u/{conversation.recipientUsername}</a>
         <span class="admin-conv-meta">{conversation.messageCount} messages</span>
       </div>
       <a class="admin-conv-post" href="/posts/{conversation.postId}" onclick={(e) => { e.preventDefault(); navigate(`/posts/${conversation.postId}`); }}>{conversation.postTitle}</a>
@@ -53,7 +53,7 @@
       {#each messages as message (message.id)}
         <div class="admin-msg">
           <div class="admin-msg-header">
-            <a href="/profile/{message.senderId}" onclick={(e) => { e.preventDefault(); navigate(`/profile/${message.senderId}`); }}>u/{message.senderUsername || message.senderId}</a>
+            <a href="/u/{message.senderId}" onclick={(e) => { e.preventDefault(); navigate(`/u/${message.senderId}`); }}>u/{message.senderUsername || message.senderId}</a>
             <span class="admin-msg-time">{new Date(message.createdAt).toLocaleString()}</span>
           </div>
           <div class="admin-msg-body">{message.body}</div>

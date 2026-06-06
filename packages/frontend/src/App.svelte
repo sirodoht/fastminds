@@ -68,7 +68,7 @@
   "/conversations": Conversations,
   "/conversations/:id": ConversationDetail,
     "/posts/:id": PostDetail,
-    "/profile/:address": Profile,
+    "/u/:address": Profile,
     "/new": NewPost,
     "/bookmarks": Bookmarks,
     "/login": Login,
@@ -107,7 +107,7 @@
               {$user.username}
             </button>
             <div class="dropdown-menu" role="menu" tabindex="-1" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()}>
-              <Link href="/profile/{$user.username}" onclick={() => { dropdownOpen = false; }}>Profile</Link>
+              <Link href="/u/{$user.username}" onclick={() => { dropdownOpen = false; }}>Profile</Link>
               <Link href="/bookmarks" onclick={() => { dropdownOpen = false; }}>Bookmarks</Link>
               <Link href="/settings" onclick={() => { dropdownOpen = false; }}>Settings</Link>
               {#if $user.isAdmin}
@@ -158,7 +158,7 @@
           {/if}
         {/if}
       </main>
-      {#if !matched?.key?.startsWith('/conversations') && matched?.key !== '/new' && !matched?.key?.startsWith('/posts/') && !matched?.key?.startsWith('/profile/') && !matched?.key?.startsWith('/admin')}
+      {#if !matched?.key?.startsWith('/conversations') && matched?.key !== '/new' && !matched?.key?.startsWith('/posts/') && !matched?.key?.startsWith('/u/') && !matched?.key?.startsWith('/admin')}
         <aside class="sidebar">
           <div class="sidebar-card">
             <h3>fastminds</h3>

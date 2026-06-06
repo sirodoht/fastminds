@@ -70,7 +70,7 @@
               {#each users as u (u.id)}
                 <tr>
                   <td>
-                    <a href="/profile/{u.username}" onclick={(e) => { e.preventDefault(); navigate(`/profile/${u.username}`); }}>
+                    <a href="/u/{u.username}" onclick={(e) => { e.preventDefault(); navigate(`/u/${u.username}`); }}>
                       {u.username}
                     </a>
                   </td>

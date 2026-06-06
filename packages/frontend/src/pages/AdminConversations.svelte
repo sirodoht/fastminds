@@ -60,9 +60,9 @@
             <div class="admin-row">
               <div class="admin-row-main">
                 <div class="admin-users">
-                  <a href="/profile/{conversation.initiatorUsername}" onclick={(e) => { e.preventDefault(); navigate(`/profile/${conversation.initiatorUsername}`); }}>u/{conversation.initiatorUsername}</a>
+                  <a href="/u/{conversation.initiatorUsername}" onclick={(e) => { e.preventDefault(); navigate(`/u/${conversation.initiatorUsername}`); }}>u/{conversation.initiatorUsername}</a>
                   <span class="arrow">→</span>
-                  <a href="/profile/{conversation.recipientUsername}" onclick={(e) => { e.preventDefault(); navigate(`/profile/${conversation.recipientUsername}`); }}>u/{conversation.recipientUsername}</a>
+                  <a href="/u/{conversation.recipientUsername}" onclick={(e) => { e.preventDefault(); navigate(`/u/${conversation.recipientUsername}`); }}>u/{conversation.recipientUsername}</a>
                 </div>
                 <div class="admin-content">
                   <a class="admin-title" href="/admin/conversations/{conversation.id}" onclick={(e) => { e.preventDefault(); navigate(`/admin/conversations/${conversation.id}`); }}>{conversation.postTitle}</a>
