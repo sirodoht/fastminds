@@ -1,19 +1,17 @@
 :root {
-  --orange: #ff4500;
-  --orange-light: #ff6a33;
-  --blue: #3366cc;
-  --blue-link: #0000ee;
-  --blue-visited: #551a8b;
-  --blue-light: #cee3f8;
-  --bg: #f0f0f0;
+  --accent: #2c3e50;
+  --accent-light: #34495e;
+  --blue: #2c5282;
+  --blue-link: #2c5282;
+  --blue-visited: #553a7d;
+  --blue-light: #edf2f7;
+  --bg: #fff;
   --bg-card: #fafafa;
   --white: #fff;
-  --border: #ccc;
-  --text: #222;
+  --border: #e8e8e8;
+  --text: #1a1a1a;
   --text-muted: #555;
   --text-meta: #888;
-  --upvote: #ff4500;
-  --downvote: #7193ff;
   --green: #24a0ed;
   --sidebar-bg: #fafafa;
   --header-height: 56px;
@@ -26,14 +24,14 @@
 }
 
 html {
-  font-size: 14px;
+  font-size: 15px;
 }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   background: var(--bg);
   color: var(--text);
-  line-height: 1.5;
+  line-height: 1.6;
   min-height: 100vh;
 }
 
@@ -53,29 +51,29 @@ a:visited {
 /* ──────── Header ──────── */
 
 .header {
-  background: var(--orange);
+  background: var(--accent);
   height: var(--header-height);
   display: flex;
   align-items: center;
-  padding: 0 16px;
+  padding: 0 24px;
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 1px 3px rgba(0,0,0,.15);
+  border-bottom: 1px solid rgba(255,255,255,.1);
 }
 
 .header-logo {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-right: 20px;
+  margin-right: 32px;
 }
 
 .header-logo a {
   color: var(--white);
-  font-size: 1.15rem;
-  font-weight: 700;
-  letter-spacing: -0.3px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
   text-decoration: none;
 }
 
@@ -86,31 +84,32 @@ a:visited {
 .header-nav {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   flex: 1;
 }
 
 .header-nav a,
 .header-nav button {
-  color: var(--white);
+  color: rgba(255,255,255,.85);
   text-decoration: none;
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: 500;
   padding: 4px 10px;
   border-radius: 3px;
   background: transparent;
   border: none;
   cursor: pointer;
-  transition: background .15s;
+  transition: all .15s;
 }
 
 .header-nav a:visited {
-  color: var(--white);
+  color: rgba(255,255,255,.85);
 }
 
 .header-nav a:hover,
 .header-nav button:hover {
-  background: rgba(255,255,255,.2);
+  color: var(--white);
+  background: rgba(255,255,255,.1);
   text-decoration: none;
 }
 
@@ -126,7 +125,7 @@ a:visited {
   padding: 0 5px;
   border-radius: 999px;
   background: var(--white);
-  color: var(--orange);
+  color: var(--accent);
   font-size: .7rem;
   line-height: 16px;
   text-align: center;
@@ -140,14 +139,14 @@ a:visited {
 }
 
 .header-right .username {
-  color: var(--white);
+  color: rgba(255,255,255,.7);
   font-size: .8rem;
   margin-right: 8px;
 }
 
 .header-right a,
 .header-right button {
-  color: var(--white);
+  color: rgba(255,255,255,.85);
   text-decoration: none;
   font-size: .8rem;
   padding: 4px 10px;
@@ -155,16 +154,17 @@ a:visited {
   background: transparent;
   border: none;
   cursor: pointer;
-  transition: background .15s;
+  transition: all .15s;
 }
 
 .header-right a:visited {
-  color: var(--white);
+  color: rgba(255,255,255,.85);
 }
 
 .header-right a:hover,
 .header-right button:hover {
-  background: rgba(255,255,255,.2);
+  color: var(--white);
+  background: rgba(255,255,255,.1);
   text-decoration: none;
 }
 
@@ -172,10 +172,10 @@ a:visited {
 
 .layout {
   display: flex;
-  gap: 16px;
-  max-width: 1100px;
-  margin: 16px auto;
-  padding: 0 16px;
+  gap: 32px;
+  max-width: 960px;
+  margin: 32px auto;
+  padding: 0 24px;
 }
 
 .content {
@@ -184,37 +184,37 @@ a:visited {
 }
 
 .sidebar {
-  width: 280px;
+  width: 260px;
   flex-shrink: 0;
 }
 
 .sidebar-card {
-  background: var(--sidebar-bg);
+  background: var(--white);
   border: 1px solid var(--border);
-  border-radius: 3px;
-  padding: 12px;
-  margin-bottom: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
   font-size: .85rem;
+  line-height: 1.5;
 }
 
 .sidebar-card h3 {
-  font-size: .95rem;
+  font-size: .9rem;
   font-weight: 600;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   color: var(--text);
   border-bottom: 1px solid var(--border);
-  padding-bottom: 6px;
+  padding-bottom: 8px;
 }
 
 .sidebar-card p {
   color: var(--text-muted);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .sidebar-card .btn-primary {
   display: block;
   text-align: center;
-  margin-top: 8px;
+  margin-top: 10px;
 }
 
 /* ──────── Cards / Panels ──────── */
@@ -222,13 +222,12 @@ a:visited {
 .panel {
   background: var(--white);
   border: 1px solid var(--border);
-  border-radius: 3px;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .panel-header {
   background: var(--blue-light);
-  padding: 6px 10px;
+  padding: 8px 12px;
   font-size: .85rem;
   font-weight: 600;
   color: var(--text);
@@ -236,7 +235,7 @@ a:visited {
 }
 
 .panel-body {
-  padding: 10px;
+  padding: 12px;
 }
 
 /* ──────── Post (feed item) ──────── */
@@ -244,50 +243,51 @@ a:visited {
 .post {
   display: flex;
   background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: 3px;
-  margin-bottom: 8px;
-  transition: border-color .15s;
+  border-bottom: 1px solid var(--border);
+  padding: 16px 0;
+  transition: none;
 }
 
-.post:hover {
-  border-color: #aaa;
+.post:last-child {
+  border-bottom: none;
 }
 
 .post-main {
   flex: 1;
-  padding: 8px 10px;
   min-width: 0;
 }
 
 .post-title {
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 500;
-  margin-bottom: 3px;
-  line-height: 1.3;
+  margin-bottom: 4px;
+  line-height: 1.35;
+  color: var(--text);
 }
 
 .post-title a {
-  color: var(--blue-link);
+  color: var(--text);
   text-decoration: none;
 }
 
 .post-title a:visited {
-  color: var(--blue-visited);
+  color: var(--text);
 }
 
 .post-title a:hover {
-  text-decoration: underline;
+  color: var(--blue-link);
+  text-decoration: none;
 }
 
 .post-meta {
-  font-size: .75rem;
+  font-size: .8rem;
   color: var(--text-meta);
+  margin-top: 4px;
 }
 
 .post-meta a {
   color: var(--text-muted);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .post-meta a:hover {
@@ -306,9 +306,9 @@ a:visited {
 }
 
 .post-detail .post-body {
-  padding: 12px 10px;
-  font-size: .9rem;
-  line-height: 1.6;
+  padding: 20px 0;
+  font-size: .95rem;
+  line-height: 1.7;
   color: var(--text);
   white-space: pre-wrap;
 }
@@ -316,32 +316,32 @@ a:visited {
 /* ──────── Comments ──────── */
 
 .comment {
-  padding: 8px 0;
+  padding: 12px 0;
   margin-left: 16px;
   border-left: 2px solid var(--border);
   padding-left: 12px;
 }
 
 .comment-meta {
-  font-size: .75rem;
+  font-size: .8rem;
   color: var(--text-meta);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .comment-meta a {
   color: var(--text-muted);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .comment-body {
-  font-size: .85rem;
-  line-height: 1.5;
+  font-size: .9rem;
+  line-height: 1.6;
   color: var(--text);
 }
 
 .comment-actions {
-  margin-top: 4px;
-  font-size: .75rem;
+  margin-top: 6px;
+  font-size: .8rem;
 }
 
 .comment-actions button {
@@ -350,12 +350,12 @@ a:visited {
   color: var(--text-meta);
   cursor: pointer;
   padding: 2px 6px;
-  font-size: .75rem;
+  font-size: .8rem;
   border-radius: 2px;
 }
 
 .comment-actions button:hover {
-  background: var(--bg);
+  background: var(--bg-card);
   color: var(--text-muted);
 }
 
@@ -364,36 +364,35 @@ a:visited {
 .form-card {
   background: var(--white);
   border: 1px solid var(--border);
-  border-radius: 3px;
-  padding: 20px;
+  padding: 24px;
   max-width: 420px;
 }
 
 .form-card h1 {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   font-weight: 600;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   color: var(--text);
 }
 
 .form-group {
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .form-group label {
   display: block;
-  font-size: .8rem;
-  font-weight: 600;
+  font-size: .85rem;
+  font-weight: 500;
   color: var(--text-muted);
-  margin-bottom: 3px;
+  margin-bottom: 4px;
 }
 
 .form-group input,
 .form-group textarea,
 .form-group select {
   width: 100%;
-  padding: 7px 9px;
-  font-size: .85rem;
+  padding: 8px 10px;
+  font-size: .9rem;
   border: 1px solid var(--border);
   border-radius: 3px;
   background: var(--white);
@@ -406,7 +405,7 @@ a:visited {
 .form-group input:focus,
 .form-group textarea:focus {
   border-color: var(--blue);
-  box-shadow: 0 0 0 2px rgba(51,102,204,.15);
+  box-shadow: 0 0 0 2px rgba(44,82,130,.1);
 }
 
 .form-group textarea {
@@ -415,14 +414,14 @@ a:visited {
 }
 
 .form-error {
-  color: var(--orange);
-  font-size: .8rem;
-  margin-bottom: 10px;
+  color: #c0392b;
+  font-size: .85rem;
+  margin-bottom: 12px;
 }
 
 .form-footer {
-  margin-top: 12px;
-  font-size: .8rem;
+  margin-top: 14px;
+  font-size: .85rem;
   color: var(--text-muted);
 }
 
@@ -434,11 +433,11 @@ a:visited {
 
 .btn-primary {
   display: inline-block;
-  padding: 6px 16px;
+  padding: 7px 18px;
   font-size: .85rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--white);
-  background: var(--orange);
+  background: var(--accent);
   border: none;
   border-radius: 3px;
   cursor: pointer;
@@ -447,7 +446,7 @@ a:visited {
 }
 
 .btn-primary:hover {
-  background: var(--orange-light);
+  background: var(--accent-light);
   text-decoration: none;
 }
 
@@ -458,11 +457,11 @@ a:visited {
 
 .btn-secondary {
   display: inline-block;
-  padding: 5px 14px;
+  padding: 6px 14px;
   font-size: .8rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-muted);
-  background: var(--bg-card);
+  background: var(--white);
   border: 1px solid var(--border);
   border-radius: 3px;
   cursor: pointer;
@@ -471,8 +470,8 @@ a:visited {
 }
 
 .btn-secondary:hover {
-  background: var(--bg);
-  border-color: #aaa;
+  background: var(--bg-card);
+  border-color: #ccc;
   text-decoration: none;
 }
 
@@ -481,11 +480,10 @@ a:visited {
 .profile-card {
   background: var(--white);
   border: 1px solid var(--border);
-  border-radius: 3px;
 }
 
 .profile-header {
-  padding: 20px;
+  padding: 24px;
   display: flex;
   gap: 16px;
   align-items: flex-start;
@@ -532,7 +530,7 @@ a:visited {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 10px;
+  padding: 12px;
   border-bottom: 1px solid var(--border);
   color: var(--text);
 }
@@ -561,7 +559,7 @@ a:visited {
   justify-content: space-between;
   gap: 12px;
   align-items: center;
-  padding: 10px 16px;
+  padding: 12px 16px;
 }
 
 .conversation-header a {
@@ -660,7 +658,7 @@ a:visited {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  padding: 10px;
+  padding: 12px;
   border-bottom: 1px solid var(--border);
   color: var(--text);
 }
@@ -675,14 +673,12 @@ a:visited {
 }
 
 .notification-row.unread {
-  background: #fff7f3;
+  background: #f8f9fa;
 }
 
 .notification-row small {
   color: var(--text-meta);
 }
-
-
 
 /* ──────── Pagination ──────── */
 
@@ -691,19 +687,18 @@ a:visited {
   justify-content: center;
   align-items: center;
   gap: 12px;
-  margin-top: 12px;
-  padding: 10px;
+  margin-top: 16px;
+  padding: 12px;
   background: var(--white);
   border: 1px solid var(--border);
-  border-radius: 3px;
 }
 
 .pagination button {
   padding: 5px 14px;
   font-size: .8rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-muted);
-  background: var(--bg-card);
+  background: var(--white);
   border: 1px solid var(--border);
   border-radius: 3px;
   cursor: pointer;
@@ -711,8 +706,8 @@ a:visited {
 }
 
 .pagination button:hover:not(:disabled) {
-  background: var(--bg);
-  border-color: #aaa;
+  background: var(--bg-card);
+  border-color: #ccc;
 }
 
 .pagination button:disabled {
@@ -736,7 +731,7 @@ a:visited {
 
 .not-found h1 {
   font-size: 3rem;
-  color: var(--orange);
+  color: var(--accent);
   font-weight: 700;
 }
 
