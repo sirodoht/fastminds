@@ -156,10 +156,6 @@ function handleComposerKeydown(e) {
         <p>Identities are hidden until 10 messages have been exchanged.</p>
         <p>{conversation.messageCount} / 10 messages</p>
       </div>
-    {:else}
-      <div class="reveal-banner">
-        <p>Identities revealed!</p>
-      </div>
     {/if}
 
     <div class="message-thread" bind:this={threadElement}>
@@ -243,18 +239,6 @@ function handleComposerKeydown(e) {
     color: var(--text-muted);
   }
   .blind-banner p {
-    margin: 0;
-  }
-  .reveal-banner {
-    padding: 8px 12px;
-    background: rgba(34, 197, 94, 0.1);
-    border-bottom: 1px solid rgba(34, 197, 94, 0.2);
-    text-align: center;
-    font-size: 0.85rem;
-    color: #22c55e;
-    font-weight: 600;
-  }
-  .reveal-banner p {
     margin: 0;
   }
   .message-thread {
