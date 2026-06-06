@@ -556,6 +556,11 @@ const fakePosts = [
   },
 ];
 
+function formatSqliteDate(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
+
 const passwordHash = await Bun.password.hash("password123");
 const usersByUsername = new Map<string, string>();
 
@@ -601,7 +606,7 @@ for (const post of fakePosts) {
       ${post.title},
       ${post.body},
       ${authorId},
-      ${new Date(Date.now() - post.hoursAgo * 60 * 60 * 1000).toISOString()}
+      ${formatSqliteDate(new Date(Date.now() - post.hoursAgo * 60 * 60 * 1000))}
     )
   `;
 

@@ -248,7 +248,7 @@ describe("Conversations", () => {
     const archivedPostId = generateUUID();
     const [archivedPost] = await db`
       INSERT INTO posts (id, title, body, author_id, archived_at)
-      VALUES (${archivedPostId}, ${"TEST Archived"}, ${"archived"}, ${userA.id}, ${new Date().toISOString()})
+      VALUES (${archivedPostId}, ${"TEST Archived"}, ${"archived"}, ${userA.id}, ${new Date().toISOString().replace("T", " ").replace("Z", "")})
       RETURNING id
     `;
 
