@@ -146,6 +146,12 @@ function handleComposerKeydown(e) {
       </Link>
     </div>
 
+    {#if conversation.postBody}
+      <div class="post-context">
+        <div class="post-context-body">{conversation.postBody}</div>
+      </div>
+    {/if}
+
     {#if !conversation.revealed}
       <div class="blind-banner">
         <p>Identities are hidden until 10 messages have been exchanged.</p>
@@ -211,6 +217,17 @@ function handleComposerKeydown(e) {
   }
   .blind-banner p {
     margin: 0;
+  }
+  .post-context {
+    padding: 12px 16px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+  }
+  .post-context-body {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    line-height: 1.5;
+    white-space: pre-wrap;
   }
   .message-thread {
     padding: 12px;
