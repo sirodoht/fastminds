@@ -298,15 +298,34 @@ a:visited {
   margin: 0 3px;
 }
 
+.archived-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+  border-radius: 4px;
+}
+
 /* ──────── Post detail ──────── */
 
 .post-detail .post {
+  border: none;
   border-bottom: 1px solid var(--border);
   margin-bottom: 0;
+  border-radius: 0;
+}
+
+.post-detail .post-main {
+  padding: 16px;
 }
 
 .post-detail .post-body {
-  padding: 12px 10px;
+  padding: 16px;
   font-size: .9rem;
   line-height: 1.6;
   color: var(--text);

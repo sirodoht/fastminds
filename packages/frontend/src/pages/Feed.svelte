@@ -48,7 +48,10 @@
           <Link href="/posts/{post.id}">{post.title}</Link>
         </div>
         <div class="post-meta">
-          <Link href="/profile/{post.author}">{post.author}</Link>
+          <span>{new Date(post.created_at).toLocaleString()}</span>
+          {#if post.archived_at}
+            <span class="archived-badge">Archived</span>
+          {/if}
         </div>
       </div>
     </article>
