@@ -233,7 +233,7 @@ $effect(() => {
       <div>
         <span class="post-title">{conversation.postTitle}</span>
       </div>
-      <Link href="/posts/{conversation.postId}" class="btn-secondary" style="font-size:0.8rem;padding:4px 10px">
+      <Link href="/posts/{conversation.postId}" class="btn-secondary" style="font-size:0.8rem;padding:4px 10px;white-space:nowrap">
         View post
       </Link>
     </div>
