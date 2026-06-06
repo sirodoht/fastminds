@@ -147,10 +147,11 @@
               <Link href="/notifications" onclick={() => { dropdownOpen = false; }}>Notifications</Link>
               <Link href="/settings" onclick={() => { dropdownOpen = false; }}>Settings</Link>
               {#if $user.isAdmin}
-                <Link href="/admin/moderation" onclick={() => { dropdownOpen = false; }}>Moderation</Link>
-                <Link href="/admin/notifications" onclick={() => { dropdownOpen = false; }}>Notifications</Link>
-                <Link href="/admin/conversations" onclick={() => { dropdownOpen = false; }}>Conversations</Link>
-                <Link href="/admin/users" onclick={() => { dropdownOpen = false; }}>Users</Link>
+                <hr style="margin: 4px 0; border: none; border-top: 1px solid var(--border-color);" />
+                <Link href="/admin/moderation" onclick={() => { dropdownOpen = false; }} class="admin-link">Moderation</Link>
+                <Link href="/admin/notifications" onclick={() => { dropdownOpen = false; }} class="admin-link">Email tests</Link>
+                <Link href="/admin/conversations" onclick={() => { dropdownOpen = false; }} class="admin-link">Conversations</Link>
+                <Link href="/admin/users" onclick={() => { dropdownOpen = false; }} class="admin-link">Users</Link>
               {/if}
               <button onclick={() => { dropdownOpen = false; logout(); navigate("/"); }}>
                 Log out

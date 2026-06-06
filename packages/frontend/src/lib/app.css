@@ -242,6 +242,15 @@ a:visited {
   text-decoration: none;
 }
 
+.dropdown-menu a.admin-link,
+.dropdown-menu a.admin-link:visited {
+  color: var(--orange);
+}
+
+.dropdown-menu a.admin-link:hover {
+  background: var(--orange-light);
+}
+
 /* ──────── Layout ──────── */
 
 .layout {
