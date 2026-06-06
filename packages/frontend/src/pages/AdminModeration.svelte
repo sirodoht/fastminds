@@ -1,5 +1,6 @@
 <script>
   import { onMount } from "svelte";
+  import Link from "../router/Link.svelte";
   import { api } from "../lib/api.js";
 
   let reports = $state([]);
@@ -119,6 +120,11 @@
                 <span class="report-reason">{report.reason}</span>
                 <span class="report-meta">by {report.reporterUsername}</span>
               </div>
+              {#if report.targetType === "post" && report.postTitle}
+                <div class="report-target">
+                  <Link href="/posts/{report.targetId}">{report.postTitle}</Link>
+                </div>
+              {/if}
               {#if report.details}
                 <div class="report-details">{report.details}</div>
               {/if}
@@ -237,6 +243,10 @@
   .report-meta {
     font-size: 0.8rem;
     color: var(--text-meta);
+  }
+  .report-target {
+    font-size: 0.85rem;
+    margin: 2px 0;
   }
   .report-details {
     font-size: 0.85rem;

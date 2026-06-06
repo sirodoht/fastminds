@@ -180,9 +180,11 @@ moderation.get("/reports", adminMiddleware, async (c) => {
         reports.details,
         reports.status,
         reports.created_at,
-        users.username AS reporter_username
+        users.username AS reporter_username,
+        posts.title AS post_title
       FROM reports
       JOIN users ON users.id = reports.reporter_id
+      LEFT JOIN posts ON reports.target_type = 'post' AND posts.id = reports.target_id::uuid
       WHERE reports.status = ${statusFilter}
         AND reports.target_type = ${targetTypeFilter}
       ORDER BY reports.created_at DESC
@@ -203,9 +205,11 @@ moderation.get("/reports", adminMiddleware, async (c) => {
         reports.details,
         reports.status,
         reports.created_at,
-        users.username AS reporter_username
+        users.username AS reporter_username,
+        posts.title AS post_title
       FROM reports
       JOIN users ON users.id = reports.reporter_id
+      LEFT JOIN posts ON reports.target_type = 'post' AND posts.id = reports.target_id::uuid
       WHERE reports.status = ${statusFilter}
       ORDER BY reports.created_at DESC
       LIMIT ${limit} OFFSET ${offset}
@@ -224,9 +228,11 @@ moderation.get("/reports", adminMiddleware, async (c) => {
         reports.details,
         reports.status,
         reports.created_at,
-        users.username AS reporter_username
+        users.username AS reporter_username,
+        posts.title AS post_title
       FROM reports
       JOIN users ON users.id = reports.reporter_id
+      LEFT JOIN posts ON reports.target_type = 'post' AND posts.id = reports.target_id::uuid
       WHERE reports.target_type = ${targetTypeFilter}
       ORDER BY reports.created_at DESC
       LIMIT ${limit} OFFSET ${offset}
@@ -245,9 +251,11 @@ moderation.get("/reports", adminMiddleware, async (c) => {
         reports.details,
         reports.status,
         reports.created_at,
-        users.username AS reporter_username
+        users.username AS reporter_username,
+        posts.title AS post_title
       FROM reports
       JOIN users ON users.id = reports.reporter_id
+      LEFT JOIN posts ON reports.target_type = 'post' AND posts.id = reports.target_id::uuid
       ORDER BY reports.created_at DESC
       LIMIT ${limit} OFFSET ${offset}
     `;
@@ -263,6 +271,7 @@ moderation.get("/reports", adminMiddleware, async (c) => {
     reason: r.reason,
     details: r.details,
     status: r.status,
+    postTitle: r.post_title,
     createdAt: r.created_at,
   }));
 
