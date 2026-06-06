@@ -3,6 +3,7 @@
   "module": "src/index.ts",
   "type": "module",
   "private": true,
+  "workspaces": ["packages/*"],
   "scripts": {
     "dev:api": "bun --hot src/index.ts",
     "dev:frontend": "cd packages/frontend && bun run dev",
