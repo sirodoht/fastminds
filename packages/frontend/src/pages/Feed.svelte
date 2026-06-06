@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import Link from "../router/Link.svelte";
   import { api } from "../lib/api.js";
+  import { user } from "../lib/stores.js";
 
   let { params } = $props();
 
@@ -51,6 +52,9 @@
           <span>{new Date(post.created_at).toLocaleString()}</span>
           {#if post.archived_at}
             <span class="archived-badge">Archived</span>
+          {/if}
+          {#if $user && post.author_id === $user.id}
+            <span class="own-badge">Your post</span>
           {/if}
         </div>
       </div>

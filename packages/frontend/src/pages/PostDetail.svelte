@@ -69,7 +69,7 @@ async function startConversation(e) {
   }
 }
 
-let isOwnPost = $derived($user && post && $user.username === post.author);
+let isOwnPost = $derived($user && post && $user.id === post.author_id);
 let canStartConversation = $derived($user && post && !post.archived_at && !isOwnPost);
 </script>
 

@@ -311,6 +311,19 @@ a:visited {
   border-radius: 4px;
 }
 
+.own-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--blue);
+  color: #fff;
+  border-radius: 4px;
+}
+
 /* ──────── Post detail ──────── */
 
 .post-detail .post {
