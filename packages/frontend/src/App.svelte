@@ -22,6 +22,8 @@
   import VerifyEmail from "./pages/VerifyEmail.svelte";
   import Settings from "./pages/Settings.svelte";
   import AdminModeration from "./pages/AdminModeration.svelte";
+  import AdminConversations from "./pages/AdminConversations.svelte";
+  import AdminConversationDetail from "./pages/AdminConversationDetail.svelte";
   import NotFound from "./pages/NotFound.svelte";
   import ConversationSidebar from "./components/ConversationSidebar.svelte";
 
@@ -74,6 +76,8 @@
     "/verify-email": VerifyEmail,
     "/settings": Settings,
     "/admin/moderation": AdminModeration,
+    "/admin/conversations": AdminConversations,
+    "/admin/conversations/:id": AdminConversationDetail,
   }} fallback={NotFound}>
   {#snippet children(matched)}
     <header class="header">
@@ -106,6 +110,7 @@
               <Link href="/settings" onclick={() => { dropdownOpen = false; }}>Settings</Link>
               {#if $user.isAdmin}
                 <Link href="/admin/moderation" onclick={() => { dropdownOpen = false; }}>Moderation</Link>
+                <Link href="/admin/conversations" onclick={() => { dropdownOpen = false; }}>Conversations</Link>
               {/if}
               <button onclick={() => { dropdownOpen = false; logout(); navigate("/"); }}>
                 Log out

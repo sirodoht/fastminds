@@ -8,6 +8,7 @@ import { postsRoutes } from "./routes/posts";
 import { usersRoutes } from "./routes/users";
 import { bookmarksRoutes } from "./routes/bookmarks";
 import { moderationRoutes } from "./routes/moderation";
+import { adminRoutes } from "./routes/admin";
 import {
   messageWebSocketHandler,
   upgradeMessagesWebSocket,
@@ -25,6 +26,7 @@ app.route("/api/posts", postsRoutes);
 app.route("/api/users", usersRoutes);
 app.route("/api/bookmarks", bookmarksRoutes);
 app.route("/api/moderation", moderationRoutes);
+app.route("/api/admin", adminRoutes);
 app.use("/*", serveStatic({ root: "./packages/frontend/dist" }));
 app.get("*", async (c) => {
   if (c.req.path.startsWith("/api/")) {
