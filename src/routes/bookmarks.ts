@@ -17,16 +17,21 @@ bookmarks.get("/", async (c) => {
       posts.id,
       posts.title,
       posts.body,
-      posts.author_id,
       posts.archived_at,
-      posts.created_at
+      posts.created_at,
+      posts.author_id = ${userId} AS is_mine
     FROM bookmarks
     JOIN posts ON bookmarks.post_id = posts.id
     WHERE bookmarks.user_id = ${userId}
     ORDER BY bookmarks.created_at DESC
   `;
 
-  return c.json({ bookmarks: rows });
+  const bookmarks = rows.map((r) => {
+    const { is_mine, ...rest } = r;
+    return { ...rest, isMine: is_mine };
+  });
+
+  return c.json({ bookmarks });
 });
 
 // POST /api/bookmarks — bookmark a post

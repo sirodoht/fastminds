@@ -139,7 +139,7 @@ describe("Bookmarks", () => {
     expect(status).toBe(200);
     const found = body.posts.find((p: any) => p.id === post.id);
     expect(found).toBeDefined();
-    expect(found.is_bookmarked).toBe(true);
+    expect(found.isBookmarked).toBe(true);
   });
 
   test("GET /api/posts/:id — includes bookmark status", async () => {

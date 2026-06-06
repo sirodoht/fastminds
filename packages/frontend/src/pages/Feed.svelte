@@ -53,7 +53,7 @@
           {#if post.archived_at}
             <span class="archived-badge">Archived</span>
           {/if}
-          {#if $user && post.author_id === $user.id}
+          {#if $user && post.isMine}
             <span class="own-badge" title="Your post"></span>
           {/if}
         </div>

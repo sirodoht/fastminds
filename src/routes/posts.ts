@@ -33,9 +33,9 @@ posts.get("/", async (c) => {
         posts.id,
         posts.title,
         posts.body,
-        posts.author_id,
         posts.archived_at,
         posts.created_at,
+        posts.author_id = ${userId} AS is_mine,
         EXISTS (
           SELECT 1 FROM bookmarks
           WHERE bookmarks.user_id = ${userId} AND bookmarks.post_id = posts.id
@@ -47,7 +47,7 @@ posts.get("/", async (c) => {
     `;
   } else {
     rows = await db`
-      SELECT posts.id, posts.title, posts.body, posts.author_id, posts.archived_at, posts.created_at
+      SELECT posts.id, posts.title, posts.body, posts.archived_at, posts.created_at, FALSE AS is_mine
       FROM posts
       WHERE posts.archived_at IS NULL
       ORDER BY posts.created_at DESC
@@ -59,8 +59,17 @@ posts.get("/", async (c) => {
     SELECT COUNT(*)::int AS total FROM posts WHERE archived_at IS NULL
   `;
 
+  const posts = rows.map((r) => {
+    const { is_mine, is_bookmarked, ...rest } = r;
+    return {
+      ...rest,
+      isMine: is_mine,
+      isBookmarked: is_bookmarked,
+    };
+  });
+
   return c.json({
-    posts: rows,
+    posts,
     page,
     limit,
     total: countRow.total,
@@ -83,10 +92,6 @@ posts.get("/:id", async (c) => {
   if (!post) {
     return c.json({ error: "Post not found" }, 404);
   }
-
-  const [conversationCount] = await db`
-    SELECT COUNT(*)::int AS count FROM conversations WHERE post_id = ${id}
-  `;
 
   const userId = await optionalUserId(c);
   let hasStartedConversation = false;
@@ -114,10 +119,12 @@ posts.get("/:id", async (c) => {
     }
   }
 
+  const { author_id, ...rest } = post;
+
   return c.json({
     post: {
-      ...post,
-      conversationCount: conversationCount.count,
+      ...rest,
+      isMine: userId ? author_id === userId : false,
       hasStartedConversation,
       conversationId,
       isBookmarked,
