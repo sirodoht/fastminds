@@ -123,7 +123,7 @@ auth.post("/register/bypass", async (c) => {
   const [user] = await db`
     INSERT INTO users (username, password_hash, email, email_verified, stripe_checkout_session_id, payment_verified)
     VALUES (${username}, ${passwordHash}, ${email}, FALSE, NULL, TRUE)
-    RETURNING id, username, email, email_verified, created_at
+    RETURNING id, username, email, email_verified, is_admin, created_at
   `;
 
   await sendVerificationEmail(user.id, email);
@@ -142,6 +142,7 @@ auth.post("/register/bypass", async (c) => {
       username: user.username,
       email: user.email,
       emailVerified: user.email_verified,
+      isAdmin: user.is_admin,
       createdAt: user.created_at,
     },
     token,
@@ -194,7 +195,7 @@ auth.post("/register/complete", async (c) => {
   const [user] = await db`
     INSERT INTO users (username, password_hash, email, email_verified, stripe_checkout_session_id, payment_verified)
     VALUES (${pending.username}, ${pending.password_hash}, ${pending.email}, FALSE, ${sessionId}, TRUE)
-    RETURNING id, username, email, email_verified, created_at
+    RETURNING id, username, email, email_verified, is_admin, created_at
   `;
 
   await db`DELETE FROM pending_registrations WHERE stripe_checkout_session_id = ${sessionId}`;
@@ -216,6 +217,7 @@ auth.post("/register/complete", async (c) => {
       username: user.username,
       email: user.email,
       emailVerified: user.email_verified,
+      isAdmin: user.is_admin,
       createdAt: user.created_at,
     },
     token,
@@ -230,7 +232,7 @@ auth.post("/login", async (c) => {
   }
 
   const [user] = await db`
-    SELECT id, username, password_hash, email, email_verified, created_at
+    SELECT id, username, password_hash, email, email_verified, is_admin, created_at
     FROM users WHERE username = ${username}
   `;
   if (!user) {
@@ -251,6 +253,7 @@ auth.post("/login", async (c) => {
       username: user.username,
       email: user.email,
       emailVerified: user.email_verified,
+      isAdmin: user.is_admin,
       createdAt: user.created_at,
     },
     token,
@@ -260,7 +263,7 @@ auth.post("/login", async (c) => {
 auth.get("/me", authMiddleware, async (c) => {
   const userId = c.get("userId");
   const [user] = await db`
-    SELECT id, username, email, email_verified, created_at
+    SELECT id, username, email, email_verified, is_admin, created_at
     FROM users WHERE id = ${userId}
   `;
   if (!user) {
@@ -273,6 +276,7 @@ auth.get("/me", authMiddleware, async (c) => {
       username: user.username,
       email: user.email,
       emailVerified: user.email_verified,
+      isAdmin: user.is_admin,
       createdAt: user.created_at,
     },
   });
