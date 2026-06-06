@@ -168,6 +168,7 @@
               <li>No algorithmic feed</li>
             </ul>
             {#if !$user}
+              <p class="sidebar-payment-note">A one-time <strong>$1.00</strong> fee is required to verify you're a real person.</p>
               <Link href="/register" class="btn-primary">Create Account</Link>
             {/if}
           </div>
