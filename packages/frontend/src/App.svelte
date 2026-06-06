@@ -80,8 +80,7 @@
       </nav>
       <div class="header-right">
         {#if $user}
-          <span class="username">{$user.username}</span>
-          <Link href="/profile/{$user.username}">Profile</Link>
+          <Link href="/profile/{$user.username}" class="username">{$user.username}</Link>
           <button onclick={() => { logout(); navigate("/"); }}>
             Log out
           </button>
