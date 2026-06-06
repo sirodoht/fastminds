@@ -20,7 +20,9 @@ async function sendViaPostmark({ to, subject, text, html }: SendEmailOptions) {
       "X-Postmark-Server-Token": apiKey,
     },
     body: JSON.stringify({
-      From: `Fastminds <${from}>`,
+      From: `"Fastminds" <${from}>`,
+      FromName: "Fastminds",
+      FromAddress: from,
       To: to,
       Subject: subject,
       TextBody: text,
@@ -49,11 +51,12 @@ export async function sendEmail(opts: SendEmailOptions) {
 
   // 2. Generic webhook (e.g. SendGrid, Resend HTTP API)
   const webhookUrl = process.env.EMAIL_WEBHOOK_URL;
+  const fromAddress = process.env.POSTMARK_FROM || process.env.FROM_EMAIL || "noreply@fastminds.xyz";
   if (webhookUrl) {
     const res = await fetch(webhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ to: opts.to, subject: opts.subject, text, html }),
+      body: JSON.stringify({ to: opts.to, from: `"Fastminds" <${fromAddress}>`, subject: opts.subject, text, html }),
     });
     if (!res.ok) {
       throw new Error(`Email webhook failed: ${res.status} ${await res.text()}`);
