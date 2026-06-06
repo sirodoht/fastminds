@@ -140,11 +140,6 @@ function handleComposerKeydown(e) {
     <div class="panel-header conversation-header">
       <div>
         <span class="post-title">{conversation.postTitle}</span>
-        {#if conversation.revealed}
-          <span class="revealed-badge">Revealed</span>
-        {:else}
-          <span class="blind-badge">Blind</span>
-        {/if}
       </div>
       <Link href="/posts/{conversation.postId}" class="btn-secondary" style="font-size:0.8rem;padding:4px 10px">
         View post
@@ -205,30 +200,6 @@ function handleComposerKeydown(e) {
   }
   .post-title {
     font-weight: 600;
-  }
-  .blind-badge {
-    display: inline-block;
-    margin-left: 8px;
-    padding: 1px 6px;
-    font-size: 0.7rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    background: var(--accent);
-    color: white;
-    border-radius: 4px;
-  }
-  .revealed-badge {
-    display: inline-block;
-    margin-left: 8px;
-    padding: 1px 6px;
-    font-size: 0.7rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    background: var(--bg-tertiary);
-    color: var(--text-muted);
-    border-radius: 4px;
   }
   .blind-banner {
     padding: 8px 12px;
