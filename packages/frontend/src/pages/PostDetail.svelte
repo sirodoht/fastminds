@@ -62,6 +62,7 @@ async function fetchUpdates() {
 
 async function archivePost() {
   if (!post || archiveLoading) return;
+  if (!confirm("Are you sure you want to archive this post? It will be hidden from the feed and no longer accept new conversations.")) return;
   archiveLoading = true;
   try {
     await api(`/api/posts/${post.id}/archive`, { method: "POST" });
