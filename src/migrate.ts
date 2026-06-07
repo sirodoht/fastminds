@@ -1,227 +1,101 @@
 import { db } from "./db";
+import { readdir } from "node:fs/promises";
+import { join } from "node:path";
 
-await db`
-  CREATE TABLE IF NOT EXISTS users (
-    id TEXT PRIMARY KEY,
-    username TEXT NOT NULL UNIQUE,
-    password_hash TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    email TEXT UNIQUE,
-    email_verified INTEGER NOT NULL DEFAULT 0,
-    email_verification_token TEXT,
-    stripe_checkout_session_id TEXT UNIQUE,
-    payment_verified INTEGER NOT NULL DEFAULT 0,
-    is_admin INTEGER NOT NULL DEFAULT 0,
-    email_notifications INTEGER NOT NULL DEFAULT 1,
-    email_new_message INTEGER NOT NULL DEFAULT 1,
-    email_new_post INTEGER NOT NULL DEFAULT 1
-  );
-`;
+const MIGRATIONS_DIR = join(import.meta.dir, "..", "migrations");
 
-try {
+async function ensureMigrationsTable() {
   db.sqlite.exec(`
-    ALTER TABLE users ADD COLUMN email_notifications INTEGER NOT NULL DEFAULT 1;
+    CREATE TABLE IF NOT EXISTS migrations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE,
+      applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
   `);
-} catch {}
+}
 
-try {
-  db.sqlite.exec(`
-    ALTER TABLE users ADD COLUMN email_new_message INTEGER NOT NULL DEFAULT 1;
-  `);
-} catch {}
+async function getAppliedMigrations(): Promise<Set<string>> {
+  const rows = await db`SELECT name FROM migrations ORDER BY id`;
+  return new Set(rows.map((r: any) => r.name));
+}
 
-try {
-  db.sqlite.exec(`
-    ALTER TABLE users ADD COLUMN email_new_post INTEGER NOT NULL DEFAULT 1;
-  `);
-} catch {}
+function escapeSqlString(str: string): string {
+  return str.replace(/'/g, "''");
+}
 
-await db`
-  CREATE TABLE IF NOT EXISTS pending_registrations (
-    id TEXT PRIMARY KEY,
-    username TEXT NOT NULL,
-    email TEXT NOT NULL,
-    password_hash TEXT NOT NULL,
-    stripe_checkout_session_id TEXT UNIQUE,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
-  );
-`;
+async function applyMigration(name: string, sql: string) {
+  console.log(`Applying ${name}...`);
 
-await db`
-  CREATE TABLE IF NOT EXISTS posts (
-    id TEXT PRIMARY KEY,
-    title TEXT NOT NULL,
-    body TEXT DEFAULT '',
-    author_id TEXT NOT NULL REFERENCES users(id),
-    archived_at TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
-  );
-`;
+  db.sqlite.exec("BEGIN");
+  try {
+    db.sqlite.exec(sql);
+    db.sqlite.exec(
+      `INSERT INTO migrations (name) VALUES ('${escapeSqlString(name)}')`
+    );
+    db.sqlite.exec("COMMIT");
+    console.log(`  ✓ ${name}`);
+  } catch (err) {
+    try {
+      db.sqlite.exec("ROLLBACK");
+    } catch {}
+    console.error(`  ✗ ${name} failed`);
+    throw err;
+  }
+}
 
-await db`
-  CREATE TABLE IF NOT EXISTS conversations (
-    id TEXT PRIMARY KEY,
-    post_id TEXT NOT NULL REFERENCES posts(id),
-    initiator_id TEXT NOT NULL REFERENCES users(id),
-    recipient_id TEXT NOT NULL REFERENCES users(id),
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
-  );
-`;
+async function runMigrations() {
+  await ensureMigrationsTable();
 
-await db`
-  CREATE INDEX IF NOT EXISTS conversations_initiator_created_at_idx
-  ON conversations (initiator_id, created_at DESC);
-`;
+  const files = (await readdir(MIGRATIONS_DIR))
+    .filter((f) => f.endsWith(".sql"))
+    .sort();
 
-await db`
-  CREATE INDEX IF NOT EXISTS conversations_participants_idx
-  ON conversations (initiator_id, recipient_id);
-`;
+  const applied = await getAppliedMigrations();
 
-await db`
-  CREATE TABLE IF NOT EXISTS conversation_messages (
-    id TEXT PRIMARY KEY,
-    conversation_id TEXT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
-    sender_id TEXT NOT NULL REFERENCES users(id),
-    body TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
-  );
-`;
+  let ran = 0;
+  for (const file of files) {
+    if (applied.has(file)) continue;
 
-await db`
-  CREATE INDEX IF NOT EXISTS conversation_messages_conversation_created_at_idx
-  ON conversation_messages (conversation_id, created_at ASC);
-`;
+    const sql = await Bun.file(join(MIGRATIONS_DIR, file)).text();
+    await applyMigration(file, sql);
+    ran++;
+  }
 
-try {
-  db.sqlite.exec(`
-    ALTER TABLE conversation_messages ADD COLUMN reply_to_message_id TEXT REFERENCES conversation_messages(id) ON DELETE SET NULL;
-  `);
-} catch {}
+  if (ran === 0) {
+    console.log("No pending migrations");
+  } else {
+    console.log(`Applied ${ran} migration(s)`);
+  }
+}
 
-await db`
-  CREATE TABLE IF NOT EXISTS post_updates (
-    id TEXT PRIMARY KEY,
-    post_id TEXT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
-    body TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
-  );
-`;
+async function status() {
+  await ensureMigrationsTable();
 
-await db`
-  CREATE INDEX IF NOT EXISTS post_updates_post_id_idx
-  ON post_updates (post_id, created_at ASC);
-`;
+  const files = (await readdir(MIGRATIONS_DIR))
+    .filter((f) => f.endsWith(".sql"))
+    .sort();
 
-await db`
-  CREATE TABLE IF NOT EXISTS notifications (
-    id TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    actor_id TEXT REFERENCES users(id) ON DELETE SET NULL,
-    type TEXT NOT NULL,
-    body TEXT NOT NULL,
-    href TEXT NOT NULL,
-    read_at TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
-  );
-`;
+  const applied = await getAppliedMigrations();
 
-await db`
-  CREATE INDEX IF NOT EXISTS notifications_user_created_at_idx
-  ON notifications (user_id, created_at DESC);
-`;
+  console.log("\nMigration Status");
+  console.log("----------------");
+  for (const file of files) {
+    const mark = applied.has(file) ? "✓" : "○";
+    console.log(`  ${mark} ${file}`);
+  }
+  console.log("");
+}
 
-await db`
-  CREATE INDEX IF NOT EXISTS notifications_user_unread_idx
-  ON notifications (user_id)
-  WHERE read_at IS NULL;
-`;
+const command = process.argv[2];
 
-await db`
-  CREATE TABLE IF NOT EXISTS conversation_feedback (
-    id TEXT PRIMARY KEY,
-    conversation_id TEXT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
-    giver_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    receiver_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    thumbs INTEGER CHECK (thumbs >= -2 AND thumbs <= 2),
-    labels TEXT DEFAULT '[]',
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    UNIQUE (conversation_id, giver_id)
-  );
-`;
-
-await db`
-  CREATE INDEX IF NOT EXISTS conversation_feedback_receiver_idx
-  ON conversation_feedback (receiver_id, created_at);
-`;
-
-await db`
-  CREATE TABLE IF NOT EXISTS admin_events (
-    id TEXT PRIMARY KEY,
-    event_type TEXT NOT NULL,
-    body TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
-  );
-`;
-
-await db`
-  CREATE INDEX IF NOT EXISTS admin_events_type_created_at_idx
-  ON admin_events (event_type, created_at DESC);
-`;
-
-await db`
-  CREATE TABLE IF NOT EXISTS bookmarks (
-    id TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    post_id TEXT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    UNIQUE (user_id, post_id)
-  );
-`;
-
-await db`
-  CREATE INDEX IF NOT EXISTS bookmarks_user_created_at_idx
-  ON bookmarks (user_id, created_at DESC);
-`;
-
-await db`
-  CREATE TABLE IF NOT EXISTS reports (
-    id TEXT PRIMARY KEY,
-    reporter_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    target_type TEXT NOT NULL CHECK (target_type IN ('post', 'message', 'account')),
-    target_id TEXT NOT NULL,
-    reason TEXT NOT NULL,
-    details TEXT DEFAULT '',
-    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'resolved')),
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
-  );
-`;
-
-await db`
-  CREATE INDEX IF NOT EXISTS reports_status_created_at_idx
-  ON reports (status, created_at DESC);
-`;
-
-await db`
-  CREATE INDEX IF NOT EXISTS reports_target_idx
-  ON reports (target_type, target_id);
-`;
-
-await db`
-  CREATE TABLE IF NOT EXISTS moderation_actions (
-    id TEXT PRIMARY KEY,
-    report_id TEXT NOT NULL REFERENCES reports(id) ON DELETE CASCADE,
-    moderator_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    action_type TEXT NOT NULL CHECK (action_type IN ('warning', 'suspend', 'ban', 'content_removed', 'content_hidden', 'no_action')),
-    note TEXT DEFAULT '',
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
-  );
-`;
-
-await db`
-  CREATE INDEX IF NOT EXISTS moderation_actions_report_idx
-  ON moderation_actions (report_id);
-`;
-
-console.log("Migration complete: users, posts, conversations, conversation_messages, post_updates, notifications, conversation_feedback, admin_events, bookmarks, reports, and moderation_actions tables ready");
-process.exit(0);
+if (command === "status") {
+  await status();
+  process.exit(0);
+} else if (command) {
+  console.error(`Unknown command: ${command}`);
+  console.error("Usage: bun run migrate [status]");
+  process.exit(1);
+} else {
+  await runMigrations();
+  process.exit(0);
+}
