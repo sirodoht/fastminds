@@ -395,7 +395,7 @@ $effect(() => {
           <div
             class="message-bubble"
             class:swiping={isSwiping}
-            style={isSwiping ? `transform: translateX(${message.isMine ? -swipeState.currentX : swipeState.currentX}px)` : ""}
+            style={isSwiping ? `transform: translateX(${swipeState.currentX}px)` : ""}
             title="Double-click to reply"
             ontouchstart={(e) => onBubbleTouchStart(e, message.id)}
             ontouchmove={onBubbleTouchMove}
@@ -587,8 +587,8 @@ $effect(() => {
     opacity: 0.8;
   }
   .swipe-reply-indicator.mine {
-    left: auto;
-    right: -36px;
+    left: -36px;
+    right: auto;
   }
   .empty-thread {
     padding: 40px;
