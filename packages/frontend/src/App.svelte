@@ -200,7 +200,7 @@
           {/if}
         {/if}
       </main>
-      {#if !matched?.key?.startsWith('/conversations') && matched?.key !== '/new' && !matched?.key?.startsWith('/posts/') && !matched?.key?.startsWith('/u/') && !matched?.key?.startsWith('/admin')}
+      {#if matched?.key === '/' || matched?.key === '/settings'}
         <aside class="sidebar">
           <div class="sidebar-card">
             <h3>fastminds</h3>
