@@ -47,6 +47,7 @@
         bind:value={title}
         placeholder="A question, argument, paradox, or idea…"
         required
+        maxlength={112}
       />
     </div>
 

@@ -128,6 +128,10 @@ posts.post("/", authMiddleware, verifiedEmailMiddleware, async (c) => {
     return c.json({ error: "Title is required" }, 400);
   }
 
+  if (title.trim().length > 112) {
+    return c.json({ error: "Title must be 112 characters or fewer" }, 400);
+  }
+
   const postId = generateUUID();
   const [post] = await db`
     INSERT INTO posts (id, title, body, author_id)
