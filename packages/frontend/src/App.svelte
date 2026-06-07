@@ -28,6 +28,8 @@
   import AdminConversationDetail from "./pages/AdminConversationDetail.svelte";
   import AdminUsers from "./pages/AdminUsers.svelte";
   import NotFound from "./pages/NotFound.svelte";
+  import Terms from "./pages/Terms.svelte";
+  import Privacy from "./pages/Privacy.svelte";
   import ConversationSidebar from "./components/ConversationSidebar.svelte";
 
   onMount(async () => {
@@ -115,6 +117,8 @@
     "/admin/conversations": AdminConversations,
     "/admin/conversations/:id": AdminConversationDetail,
     "/admin/users": AdminUsers,
+    "/terms": Terms,
+    "/privacy": Privacy,
   }} fallback={NotFound}>
   {#snippet children(matched)}
     <header class="header">
@@ -238,6 +242,12 @@
               <Link href="/register" class="btn-primary">Create Account</Link>
             {/if}
           </div>
+          <p style="font-size: 0.75rem; color: #999; text-align: center; margin-top: 1rem;">
+            Fastminds © 2026. All rights reserved.
+          </p>
+          <p style="font-size: 0.75rem; color: #999; text-align: center; margin-top: 0.5rem;">
+            <Link href="/terms" style="color: #999;">Terms of Service</Link> · <Link href="/privacy" style="color: #999;">Privacy Policy</Link>
+          </p>
         </aside>
       {/if}
     </div>

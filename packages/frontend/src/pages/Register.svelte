@@ -5,6 +5,7 @@
   let username = $state("");
   let email = $state("");
   let password = $state("");
+  let agreeTerms = $state(false);
   let error = $state("");
   let loading = $state(false);
 
@@ -12,6 +13,11 @@
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (!agreeTerms) {
+      error = "You must agree to the Terms of Service to continue.";
+      return;
+    }
+
     error = "";
     loading = true;
 
@@ -76,6 +82,13 @@
       <input id="password" type="password" bind:value={password} placeholder="choose a password" required />
     </div>
 
+    <div class="checkbox-group">
+      <label class="checkbox-label">
+        <input type="checkbox" bind:checked={agreeTerms} />
+        <span>I agree to the <a href="/terms" target="_blank" rel="noopener noreferrer">Terms of Service</a> and <a href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></span>
+      </label>
+    </div>
+
     {#if error}
       <p class="form-error">{error}</p>
     {/if}
@@ -95,5 +108,25 @@
     margin-bottom: 1rem;
     font-size: 0.95rem;
     color: #444;
+  }
+  .checkbox-group {
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+    color: #333;
+    cursor: pointer;
+  }
+  .checkbox-label input[type="checkbox"] {
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+    width: auto;
   }
 </style>
