@@ -17,6 +17,7 @@ type MessageEvent =
         created_at: string;
         senderId: string;
         conversationId: string;
+        replyTo: string | null;
       };
     }
   | {
@@ -127,7 +128,8 @@ export const messageWebSocketHandler = {
         !("conversationId" in payload) ||
         typeof payload.conversationId !== "string" ||
         !("body" in payload) ||
-        typeof payload.body !== "string"
+        typeof payload.body !== "string" ||
+        ("replyTo" in payload && payload.replyTo !== undefined && payload.replyTo !== null && typeof payload.replyTo !== "string")
       ) {
         send(ws, { type: "error", error: "Invalid message payload" });
         return;
@@ -135,6 +137,7 @@ export const messageWebSocketHandler = {
 
       const body = payload.body.trim();
       const conversationId = payload.conversationId.trim();
+      const replyTo = payload.replyTo?.trim() || null;
 
       if (!body) {
         send(ws, { type: "error", error: "Message cannot be empty" });
@@ -167,11 +170,24 @@ export const messageWebSocketHandler = {
         return;
       }
 
+      // Validate replyTo if provided
+      if (replyTo) {
+        const [replyTarget] = await db`
+          SELECT id FROM conversation_messages
+          WHERE id = ${replyTo} AND conversation_id = ${conversationId}
+          LIMIT 1
+        `;
+        if (!replyTarget) {
+          send(ws, { type: "error", error: "Reply target message not found" });
+          return;
+        }
+      }
+
       const messageId = generateUUID();
       const [message] = await db`
-        INSERT INTO conversation_messages (id, conversation_id, sender_id, body)
-        VALUES (${messageId}, ${conversationId}, ${ws.data.userId}, ${body})
-        RETURNING id, conversation_id, sender_id, body, created_at
+        INSERT INTO conversation_messages (id, conversation_id, sender_id, body, reply_to_message_id)
+        VALUES (${messageId}, ${conversationId}, ${ws.data.userId}, ${body}, ${replyTo})
+        RETURNING id, conversation_id, sender_id, body, created_at, reply_to_message_id
       `;
 
       const otherUserId = conversation.initiator_id === ws.data.userId
@@ -200,6 +216,7 @@ export const messageWebSocketHandler = {
           created_at: message.created_at,
           senderId: message.sender_id,
           conversationId: message.conversation_id,
+          replyTo: message.reply_to_message_id || null,
         },
       });
 

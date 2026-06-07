@@ -93,6 +93,12 @@ await db`
   ON conversation_messages (conversation_id, created_at ASC);
 `;
 
+try {
+  db.sqlite.exec(`
+    ALTER TABLE conversation_messages ADD COLUMN reply_to_message_id TEXT REFERENCES conversation_messages(id) ON DELETE SET NULL;
+  `);
+} catch {}
+
 await db`
   CREATE TABLE IF NOT EXISTS post_updates (
     id TEXT PRIMARY KEY,

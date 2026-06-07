@@ -15,6 +15,7 @@ let draft = $state("");
 let connected = $state(false);
 let socket;
 let threadElement = $state();
+let textareaElement = $state();
 let reconnectTimer = null;
 let reconnectAttempts = 0;
 const MAX_RECONNECT_DELAY = 30000;
@@ -29,6 +30,65 @@ let feedbackCollapsed = $state(true);
 
 let feedbackDebounceTimer = null;
 let feedbackInitialLoad = true;
+
+let replyingTo = $state(null);
+
+function startReply(message) {
+  replyingTo = { id: message.id, body: message.body, senderUsername: message.senderUsername, isMine: message.isMine };
+}
+
+function cancelReply() {
+  replyingTo = null;
+}
+
+$effect(() => {
+  if (replyingTo && textareaElement) {
+    textareaElement.focus();
+  }
+});
+
+function getReplyPreview(replyToId) {
+  const msg = messages.find((m) => m.id === replyToId);
+  if (!msg) return null;
+  return {
+    body: msg.body,
+    senderUsername: msg.senderUsername,
+    isMine: msg.isMine,
+  };
+}
+
+// Swipe gesture state
+let swipeState = $state({ active: false, currentX: 0, startX: 0, targetId: null });
+const SWIPE_THRESHOLD = 60;
+
+function onBubbleTouchStart(e, messageId) {
+  const touch = e.touches[0];
+  swipeState = {
+    active: true,
+    startX: touch.clientX,
+    currentX: 0,
+    targetId: messageId,
+  };
+}
+
+function onBubbleTouchMove(e) {
+  if (!swipeState.active) return;
+  const touch = e.touches[0];
+  const deltaX = touch.clientX - swipeState.startX;
+  // Only allow rightward swipe
+  if (deltaX > 0) {
+    swipeState = { ...swipeState, currentX: Math.min(deltaX, 100) };
+  }
+}
+
+function onBubbleTouchEnd(e, message) {
+  if (!swipeState.active) return;
+  const didSwipe = swipeState.currentX >= SWIPE_THRESHOLD;
+  swipeState = { active: false, currentX: 0, startX: 0, targetId: null };
+  if (didSwipe) {
+    startReply(message);
+  }
+}
 
 async function scrollToBottom(behavior = "smooth") {
   await tick();
@@ -127,6 +187,7 @@ function connectSocket() {
       senderId: msg.senderId,
       senderUsername: null,
       isMine: msg.senderId === $user?.id,
+      replyTo: msg.replyTo || null,
     }];
 
     // If this message triggers reveal, or if already revealed, refetch to get usernames
@@ -171,13 +232,19 @@ function sendMessage(e) {
   const body = draft.trim();
   if (!body || !socket || socket.readyState !== WebSocket.OPEN) return;
 
-  socket.send(JSON.stringify({
+  const payload = {
     type: "conversation:message:create",
     conversationId: params.id,
     body,
-  }));
+  };
+  if (replyingTo) {
+    payload.replyTo = replyingTo.id;
+  }
+
+  socket.send(JSON.stringify(payload));
 
   draft = "";
+  replyingTo = null;
   error = "";
 }
 
@@ -318,14 +385,46 @@ $effect(() => {
 
     <div class="message-thread" bind:this={threadElement}>
       {#each messages as message (message.id)}
+        {@const isSwiping = swipeState.active && swipeState.targetId === message.id}
         <div class="message-group" class:mine={message.isMine}>
           {#if conversation.revealed && message.senderUsername}
             <div class="message-author">{message.senderUsername}</div>
           {:else}
             <div class="message-author anonymous">{message.isMine ? "You" : "Other"}</div>
           {/if}
-          <div class="message-bubble">
+          <div
+            class="message-bubble"
+            class:swiping={isSwiping}
+            style={isSwiping ? `transform: translateX(${message.isMine ? -swipeState.currentX : swipeState.currentX}px)` : ""}
+            title="Double-click to reply"
+            ontouchstart={(e) => onBubbleTouchStart(e, message.id)}
+            ontouchmove={onBubbleTouchMove}
+            ontouchend={(e) => onBubbleTouchEnd(e, message)}
+            ondblclick={() => startReply(message)}
+            role="button"
+            tabindex="0"
+          >
+            {#if message.replyTo}
+              {@const preview = getReplyPreview(message.replyTo)}
+              {#if preview}
+                <div class="message-reply-preview">
+                  <div class="message-reply-bar"></div>
+                  <div class="message-reply-content">
+                    <span class="message-reply-author">{preview.isMine ? "You" : (preview.senderUsername || "Other")}</span>
+                    <span class="message-reply-body">{preview.body}</span>
+                  </div>
+                </div>
+              {/if}
+            {/if}
             <div class="message-body">{message.body}</div>
+            {#if isSwiping}
+              <div class="swipe-reply-indicator" class:mine={message.isMine}>
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 17 4 12 9 7"></polyline>
+                  <path d="M20 18v-2a4 4 0 0 0-4-4H4"></path>
+                </svg>
+              </div>
+            {/if}
           </div>
         </div>
       {:else}
@@ -334,15 +433,33 @@ $effect(() => {
     </div>
 
     <form class="message-composer" onsubmit={sendMessage}>
+      {#if replyingTo}
+        <div class="composer-reply-preview">
+          <div class="composer-reply-bar"></div>
+          <div class="composer-reply-content">
+            <span class="composer-reply-label">Replying to {replyingTo.isMine ? "yourself" : (replyingTo.senderUsername || "Other")}</span>
+            <span class="composer-reply-body">{replyingTo.body}</span>
+          </div>
+          <button type="button" class="composer-reply-cancel" onclick={cancelReply} aria-label="Cancel reply">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      {/if}
       <textarea
+        bind:this={textareaElement}
         bind:value={draft}
         onkeydown={handleComposerKeydown}
         placeholder="Write a message…"
-        rows="3"
+        rows="2"
       ></textarea>
       <div class="message-composer-footer">
         {#if !connected}
           <span class="socket-status">Connecting…</span>
+        {:else}
+          <span class="composer-hint">Press enter to send</span>
         {/if}
         <button type="submit" class="btn-primary" disabled={!draft.trim() || !connected}>
           Send
@@ -416,6 +533,63 @@ $effect(() => {
     white-space: pre-wrap;
     word-break: break-word;
   }
+  .message-reply-preview {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 6px;
+    opacity: 0.8;
+    font-size: 0.8rem;
+  }
+  .message-reply-bar {
+    width: 3px;
+    background: var(--accent);
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .message-reply-content {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .message-reply-author {
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 1px;
+  }
+  .message-reply-body {
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+  }
+  .message-group.mine .message-reply-bar {
+    background: rgba(255,255,255,0.85);
+  }
+  .message-group.mine .message-reply-author,
+  .message-group.mine .message-reply-body {
+    color: rgba(255,255,255,0.9);
+  }
+  .message-bubble.swiping {
+    transition: none;
+    position: relative;
+  }
+  .message-bubble:not(.swiping) {
+    transition: transform 0.2s ease-out;
+  }
+  .swipe-reply-indicator {
+    position: absolute;
+    left: -36px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent);
+    opacity: 0.8;
+  }
+  .swipe-reply-indicator.mine {
+    left: auto;
+    right: -36px;
+  }
   .empty-thread {
     padding: 40px;
     text-align: center;
@@ -440,13 +614,18 @@ $effect(() => {
   }
   .message-composer-footer {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     align-items: center;
     gap: 8px;
   }
   .socket-status {
     font-size: 0.8rem;
     color: var(--text-muted);
+  }
+  .composer-hint {
+    font-size: 0.75rem;
+    color: var(--text-meta);
+    font-style: italic;
   }
   .feedback-panel {
     padding: 8px 16px;
@@ -540,5 +719,55 @@ $effect(() => {
   }
   .status-error {
     color: #dc2626;
+  }
+  .composer-reply-preview {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 4px;
+  }
+  .composer-reply-bar {
+    width: 3px;
+    align-self: stretch;
+    background: var(--accent);
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .composer-reply-content {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+  }
+  .composer-reply-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+  .composer-reply-body {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+  }
+  .composer-reply-cancel {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+  }
+  .composer-reply-cancel:hover {
+    background: var(--border);
   }
 </style>

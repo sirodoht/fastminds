@@ -226,7 +226,8 @@ conversations.get("/:id", async (c) => {
       conversation_messages.id,
       conversation_messages.sender_id,
       conversation_messages.body,
-      conversation_messages.created_at
+      conversation_messages.created_at,
+      conversation_messages.reply_to_message_id
     FROM conversation_messages
     WHERE conversation_messages.conversation_id = ${id}
     ORDER BY conversation_messages.created_at ASC
@@ -257,6 +258,7 @@ conversations.get("/:id", async (c) => {
     senderId: m.sender_id,
     senderUsername: revealed ? senderMap.get(m.sender_id) || null : null,
     isMine: m.sender_id === userId,
+    replyTo: m.reply_to_message_id || null,
   }));
 
   const otherUserId = isInitiator ? conversation.recipient_id : conversation.initiator_id;
@@ -289,7 +291,7 @@ conversations.get("/:id", async (c) => {
 conversations.post("/:id/messages", async (c) => {
   const userId = c.get("userId");
   const id = c.req.param("id");
-  const { body } = await c.req.json();
+  const { body, replyTo } = await c.req.json();
 
   if (!body || !body.trim()) {
     return c.json({ error: "Message cannot be empty" }, 400);
@@ -321,11 +323,23 @@ conversations.post("/:id/messages", async (c) => {
     return c.json({ error: "Forbidden" }, 403);
   }
 
+  // Validate replyTo if provided
+  if (replyTo) {
+    const [replyTarget] = await db`
+      SELECT id FROM conversation_messages
+      WHERE id = ${replyTo} AND conversation_id = ${id}
+      LIMIT 1
+    `;
+    if (!replyTarget) {
+      return c.json({ error: "Reply target message not found" }, 404);
+    }
+  }
+
   const messageId = generateUUID();
   const [message] = await db`
-    INSERT INTO conversation_messages (id, conversation_id, sender_id, body)
-    VALUES (${messageId}, ${id}, ${userId}, ${body.trim()})
-    RETURNING id, conversation_id, sender_id, body, created_at
+    INSERT INTO conversation_messages (id, conversation_id, sender_id, body, reply_to_message_id)
+    VALUES (${messageId}, ${id}, ${userId}, ${body.trim()}, ${replyTo || null})
+    RETURNING id, conversation_id, sender_id, body, created_at, reply_to_message_id
   `;
 
   const otherUserId = conversation.initiator_id === userId
@@ -426,6 +440,7 @@ ${messages.map((m: any) => `<li><b>${m.sender_username}</b> (${new Date(m.create
       senderUsername: null,
       isMine: true,
       conversationId: message.conversation_id,
+      replyTo: message.reply_to_message_id || null,
     },
     messageCount,
     revealed,
