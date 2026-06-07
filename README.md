@@ -1,6 +1,6 @@
 # fastminds
 
-Anonymous-to-pseudonymous conversations around ideas. No scores, no followers, no algorithms.
+where curious people have deep one-to-one conversations
 
 ## Setup
 
@@ -48,17 +48,17 @@ Optional:
 
 ## Architecture
 
-- **Backend**: Hono + SQLite (`bun:sqlite`) + Bun.serve with WebSocket upgrade
-- **Frontend**: Svelte SPA built with Vite, served as static files by Hono in production
-- **Auth**: JWT tokens stored in `localStorage`
-- **Real-time**: WebSocket at `/ws/messages` for live message delivery and notifications
-- **Payment**: Stripe Checkout for one-time $1 sign-up fee (bypassable with `?bypass=true` in dev)
+- Backend: Hono + SQLite (`bun:sqlite`) + Bun.serve with WebSocket upgrade
+- Frontend: Svelte SPA built with Vite, served as static files by Hono in production
+- Auth: JWT tokens stored in `localStorage`
+- Real-time: WebSocket at `/ws/messages` for live message delivery and notifications
+- Payment: Stripe Checkout for sign-up fee
 
 ## How Conversations Work
 
 1. Users post questions/ideas
-2. Others start **anonymous** conversations on posts
-3. After **10 messages exchanged**, identities are revealed to both participants
+2. Others start anonymous conversations on posts
+3. After 10 messages exchanged, identities are revealed to both participants
 4. Once revealed, participants can leave feedback labels (e.g. "Insightful", "Curious", "Kind")
 5. Labels decay over time — recent interactions weigh more
 
@@ -66,8 +66,8 @@ Optional:
 
 The seed script creates fake intellectual personas:
 
-- **25 users**: pseudonyms like `socrates`, `hypatia`, `ada`, `turing`, `borges`, `pessoa`, `nietzsche`, `kierkegaard`, `octavia`, `curie`, `godel`, `ramanujan`, `vonnegut`, `ginsberg`, `montaigne`, `cicero`, and more
-- **81 posts**: idea-first questions and arguments spanning philosophy, science, mathematics, art, and ethics
+- 25 users: pseudonyms like `socrates`, `hypatia`, `ada`, `turing`, `borges`, `pessoa`, `nietzsche`, `kierkegaard`, `octavia`, `curie`, `godel`, `ramanujan`, `vonnegut`, `ginsberg`, `montaigne`, `cicero`, and more
+- 81 posts: idea-first questions and arguments spanning philosophy, science, mathematics, art, and ethics
 
 Login: any seeded username with password `password123`
 
@@ -76,10 +76,10 @@ Login: any seeded username with password `password123`
 A systemd service file is provided at `deploy/fastminds.service`:
 
 ```bash
-sudo cp deploy/fastminds.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable fastminds
-sudo systemctl start fastminds
+cp deploy/fastminds.service /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable fastminds
+systemctl start fastminds
 ```
 
 Build the frontend before deploying:
