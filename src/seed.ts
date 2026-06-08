@@ -556,6 +556,133 @@ const fakePosts = [
   },
 ];
 
+const fakeConversations = [
+  {
+    postTitle: "What belief have you changed your mind about recently?",
+    initiator: "hypatia",
+    messages: [
+      { sender: "hypatia", body: "I have been thinking about your question on changing minds. I used to believe certainty was a sign of strength." },
+      { sender: "socrates", body: "What changed that belief for you?" },
+      { sender: "hypatia", body: "Teaching. I noticed that the students who admitted confusion learned faster than the ones who pretended to understand." },
+      { sender: "socrates", body: "That is a beautiful observation. The willingness to look foolish is itself a kind of wisdom." },
+      { sender: "hypatia", body: "Exactly. And yet it is terrifying in public settings. The cost of admitting you are wrong can be high." },
+      { sender: "socrates", body: "It is. But the cost of pretending you are right when you are not is higher, though it is paid more slowly." },
+      { sender: "hypatia", body: "I have seen that. Entire careers built on a mistake that no one dared to correct." },
+      { sender: "socrates", body: "So the question becomes: how do we create environments where reversal is safe?" },
+      { sender: "hypatia", body: "Perhaps by making it normal. I try to narrate my own changes of mind in public." },
+      { sender: "socrates", body: "That is a kind of courage. Do you find it changes how people relate to you?" },
+      { sender: "hypatia", body: "Some people trust me more. Others seem confused, as if I should be consistent at all costs." },
+      { sender: "socrates", body: "Consistency is a hobgoblin. I prefer someone who thinks to someone who merely agrees with themselves." },
+    ],
+    hoursAgo: 2,
+  },
+  {
+    postTitle: "Is a good question more valuable than a fast answer?",
+    initiator: "ada",
+    messages: [
+      { sender: "ada", body: "Your question about good questions struck me. I think a good question is more valuable because it creates a space." },
+      { sender: "hypatia", body: "What kind of space?" },
+      { sender: "ada", body: "A space where thinking can happen. A fast answer closes the door. A good question opens it." },
+      { sender: "hypatia", body: "But do you think some people just want the door closed?" },
+      { sender: "ada", body: "Yes. And that is their right. But I prefer the company of people who want the door open." },
+      { sender: "hypatia", body: "I think that is the deepest divide between people: not intelligence, but tolerance for ambiguity." },
+    ],
+    hoursAgo: 5,
+  },
+  {
+    postTitle: "Small systems can still have elegant architecture",
+    initiator: "tesla",
+    messages: [
+      { sender: "tesla", body: "Small systems. I have built many. The ones I am proud of are the ones I can still understand a year later." },
+      { sender: "ada", body: "That is my test too. If I cannot explain it to myself after a year, it was not well designed." },
+      { sender: "tesla", body: "Do you think elegance is a luxury, or a necessity?" },
+      { sender: "ada", body: "In the long run, it is a necessity. Incomprehensible systems become unmaintainable systems." },
+    ],
+    hoursAgo: 8,
+  },
+  {
+    postTitle: "When does a tool become a collaborator?",
+    initiator: "curie",
+    messages: [
+      { sender: "curie", body: "Your question about tools becoming collaborators — I think it happens when the tool surprises you." },
+      { sender: "turing", body: "Surprise is an interesting criterion. Not just usefulness, but unexpected usefulness." },
+      { sender: "curie", body: "Yes. I have had instruments that produced results I did not anticipate. That changed my thinking." },
+      { sender: "turing", body: "Do you think a tool that only does what you expect is still just a tool?" },
+      { sender: "curie", body: "I think so. A collaborator is something that extends your mind, not just your hand." },
+      { sender: "turing", body: "I have been thinking about this in the context of computation. A machine that can surprise its programmer is a different kind of machine." },
+      { sender: "curie", body: "It makes the relationship feel less like master and servant, more like... I do not know what." },
+      { sender: "turing", body: "Perhaps a kind of intellectual partnership. Incomplete on both sides." },
+    ],
+    hoursAgo: 12,
+  },
+  {
+    postTitle: "A library that contains every possible book is mostly noise",
+    initiator: "ginsberg",
+    messages: [
+      { sender: "ginsberg", body: "I have been thinking about your library of all possible books. It is a nightmare." },
+      { sender: "borges", body: "It is a nightmare, but a common one. We are living in something like it now." },
+      { sender: "ginsberg", body: "So the question is how to cultivate taste in the noise." },
+      { sender: "borges", body: "Taste is the only filter that scales. But it cannot be taught, only developed." },
+      { sender: "ginsberg", body: "I think it is developed through conversation. Through seeing what others attend to." },
+    ],
+    hoursAgo: 20,
+  },
+  {
+    postTitle: "What are you currently investigating just because it is beautiful?",
+    initiator: "ramanujan",
+    messages: [
+      { sender: "ramanujan", body: "I have been thinking about what I find beautiful. Numbers. Patterns. The way primes hide." },
+      { sender: "curie", body: "I understand. I find beauty in the invisible too. Radioactivity. The unseen world." },
+      { sender: "ramanujan", body: "Do you think beauty is a reliable guide to truth?" },
+      { sender: "curie", body: "I think it is the only reliable guide. Ugly theories are usually wrong." },
+      { sender: "ramanujan", body: "I have noticed the same in mathematics. The beautiful proof is usually the correct one." },
+      { sender: "curie", body: "Perhaps because beauty is a kind of compression. It is the most information with the least effort." },
+      { sender: "ramanujan", body: "That is a lovely way to think about it. I will carry that with me." },
+      { sender: "curie", body: "And I will carry your primes. We are both hunters of invisible things." },
+      { sender: "ramanujan", body: "Yes. I think that is what binds us. Not the visible world, but the patterns beneath it." },
+      { sender: "curie", body: "To the invisible, then. And to those who see it." },
+      { sender: "ramanujan", body: "To the invisible." },
+    ],
+    hoursAgo: 16,
+  },
+  {
+    postTitle: "What kind of ancestor do you want to be?",
+    initiator: "simone",
+    messages: [
+      { sender: "simone", body: "Your question about what kind of ancestor we want to be — I have been thinking about this for years." },
+      { sender: "octavia", body: "And what have you concluded?" },
+      { sender: "simone", body: "I want to be the kind of ancestor who made the questions easier to ask, not the answers easier to find." },
+      { sender: "octavia", body: "That is a beautiful aspiration. I want to be the kind who planted seeds that others could harvest." },
+      { sender: "simone", body: "I think that is the same thing. The seed is the question. The harvest is the answer." },
+      { sender: "octavia", body: "But what if the seeds never grow? What if the conditions are wrong?" },
+      { sender: "simone", body: "Then the seed is still a gift. The possibility is itself a kind of abundance." },
+    ],
+    hoursAgo: 25,
+  },
+  {
+    postTitle: "What if suffering is not a bug but a feature?",
+    initiator: "kierkegaard",
+    messages: [
+      { sender: "kierkegaard", body: "Your question about suffering. I have suffered. I know what it is. I also know what it produced." },
+      { sender: "nietzsche", body: "Tell me. What did it produce?" },
+      { sender: "kierkegaard", body: "Depth. A kind of seriousness that cannot be faked." },
+      { sender: "nietzsche", body: "I have said that what does not kill me makes me stronger. I believed that. But I also know that it is not always true." },
+      { sender: "kierkegaard", body: "No. Sometimes it does not make you stronger. Sometimes it makes you different. And you must learn to live with that difference." },
+      { sender: "nietzsche", body: "That is more honest. I appreciate your honesty. I have not always been honest about suffering. I have romanticized it." },
+      { sender: "kierkegaard", body: "We all have. It is easier to romanticize than to endure." },
+      { sender: "nietzsche", body: "Yes. But the truth is that suffering is just suffering. It is not a teacher. It is not a gift. It is just what it is." },
+      { sender: "kierkegaard", body: "And yet we are changed by it. Whether we want to be or not." },
+      { sender: "nietzsche", body: "That is the real question. Not whether suffering is good, but how we respond to the change it forces on us." },
+      { sender: "kierkegaard", body: "Yes. And I think the response is the only thing that is ours. The suffering is not." },
+      { sender: "nietzsche", body: "We are getting somewhere. I think this is the conversation I needed." },
+      { sender: "kierkegaard", body: "I am glad. I needed it too." },
+      { sender: "nietzsche", body: "To the response, then. To the only thing that is ours." },
+      { sender: "kierkegaard", body: "To the response." },
+    ],
+    hoursAgo: 4,
+  },
+];
+
 function formatSqliteDate(date: Date): string {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
@@ -582,20 +709,24 @@ for (const username of fakeUsers) {
 }
 
 let insertedPosts = 0;
+const postsByTitle = new Map<string, { id: string; authorId: string }>();
 
 for (const post of fakePosts) {
   const authorId = usersByUsername.get(post.author);
   if (!authorId) continue;
 
   const [existing] = await db`
-    SELECT id
+    SELECT id, author_id
     FROM posts
     WHERE author_id = ${authorId}
       AND title = ${post.title}
     LIMIT 1
   `;
 
-  if (existing) continue;
+  if (existing) {
+    postsByTitle.set(post.title, { id: existing.id, authorId: existing.author_id });
+    continue;
+  }
 
   const postId = crypto.randomUUID();
 
@@ -610,11 +741,88 @@ for (const post of fakePosts) {
     )
   `;
 
+  postsByTitle.set(post.title, { id: postId, authorId });
   insertedPosts++;
+}
+
+let insertedConversations = 0;
+let insertedMessages = 0;
+
+for (const conv of fakeConversations) {
+  const post = postsByTitle.get(conv.postTitle);
+  if (!post) continue;
+
+  const initiatorId = usersByUsername.get(conv.initiator);
+  const recipientId = post.authorId;
+  if (!initiatorId || !recipientId) continue;
+
+  const [existing] = await db`
+    SELECT id FROM conversations
+    WHERE post_id = ${post.id}
+      AND initiator_id = ${initiatorId}
+      AND recipient_id = ${recipientId}
+    LIMIT 1
+  `;
+
+  if (existing) continue;
+
+  const conversationId = crypto.randomUUID();
+  const conversationCreatedAt = new Date(Date.now() - conv.hoursAgo * 60 * 60 * 1000);
+
+  await db`
+    INSERT INTO conversations (id, post_id, initiator_id, recipient_id, created_at)
+    VALUES (
+      ${conversationId},
+      ${post.id},
+      ${initiatorId},
+      ${recipientId},
+      ${formatSqliteDate(conversationCreatedAt)}
+    )
+  `;
+
+  insertedConversations++;
+
+  const messageIntervalMinutes = 15;
+  for (let i = 0; i < conv.messages.length; i++) {
+    const msg = conv.messages[i];
+    const senderId = usersByUsername.get(msg.sender);
+    if (!senderId) continue;
+
+    const messageTime = new Date(conversationCreatedAt.getTime() + i * messageIntervalMinutes * 60 * 1000);
+
+    await db`
+      INSERT INTO conversation_messages (id, conversation_id, sender_id, body, created_at)
+      VALUES (
+        ${crypto.randomUUID()},
+        ${conversationId},
+        ${senderId},
+        ${msg.body},
+        ${formatSqliteDate(messageTime)}
+      )
+    `;
+
+    insertedMessages++;
+  }
+
+  // Add notification for the recipient
+  await db`
+    INSERT INTO notifications (id, user_id, actor_id, type, body, href, created_at)
+    VALUES (
+      ${crypto.randomUUID()},
+      ${recipientId},
+      ${initiatorId},
+      ${"conversation:new"},
+      ${"New conversation started on your post"},
+      ${`/conversations/${conversationId}`},
+      ${formatSqliteDate(conversationCreatedAt)}
+    )
+  `;
 }
 
 console.log(`Seed complete:`);
 console.log(`  ${fakeUsers.length} users ready`);
 console.log(`  ${insertedPosts} new posts inserted`);
+console.log(`  ${insertedConversations} new conversations inserted`);
+console.log(`  ${insertedMessages} new messages inserted`);
 console.log("Seed login password for fake users: password123");
 process.exit(0);
