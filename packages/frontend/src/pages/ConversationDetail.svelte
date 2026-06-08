@@ -33,6 +33,17 @@ let feedbackInitialLoad = true;
 
 let replyingTo = $state(null);
 
+function resizeTextarea() {
+  if (!textareaElement) return;
+  textareaElement.style.height = "auto";
+  textareaElement.style.height = textareaElement.scrollHeight + "px";
+}
+
+$effect(() => {
+  draft;
+  resizeTextarea();
+});
+
 function startReply(message) {
   replyingTo = { id: message.id, body: message.body, senderUsername: message.senderUsername, isMine: message.isMine };
 }
@@ -453,7 +464,8 @@ $effect(() => {
         bind:value={draft}
         onkeydown={handleComposerKeydown}
         placeholder="Write a message…"
-        rows="2"
+        rows="1"
+        style="resize: none; overflow: hidden;"
       ></textarea>
       <div class="message-composer-footer">
         {#if !connected}
@@ -610,7 +622,8 @@ $effect(() => {
     background: var(--bg-secondary);
     color: var(--text-primary);
     font: inherit;
-    resize: vertical;
+    resize: none;
+    overflow: hidden;
   }
   .message-composer-footer {
     display: flex;
