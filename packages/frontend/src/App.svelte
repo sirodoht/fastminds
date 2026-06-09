@@ -215,10 +215,10 @@
             </ol>
             <p>
                 Conversations start anonymous and become pseudonymous.
-                After 10 messages both participants see each other’s profile.
+                After 10 messages both participants see each other’s username.
             </p>
             <p>
-                Interlocutor can assign labels to each other after 10 messages in the same conversation.
+                Interlocutors can assign labels to each other after 10 messages in the same conversation.
             </p>
             <p>
                 There is no score or ranking. There are labels that reflect what it's like talking to you.
