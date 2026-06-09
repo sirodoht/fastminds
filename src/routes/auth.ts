@@ -1,6 +1,12 @@
 import { Hono } from "hono";
 import { sign } from "hono/jwt";
 import Stripe from "stripe";
+import {
+  generateRegistrationOptions,
+  verifyRegistrationResponse,
+  generateAuthenticationOptions,
+  verifyAuthenticationResponse,
+} from "@simplewebauthn/server";
 import { db, generateUUID } from "../db";
 import { authMiddleware, type AuthEnv } from "../middleware/auth";
 import { sendEmail, sendAdminEmail, logAdminEvent, buildVerificationUrl } from "../lib/email";
@@ -445,6 +451,283 @@ auth.delete("/account", authMiddleware, async (c) => {
   await db`UPDATE conversation_messages SET sender_id = ${deletedUser.id} WHERE sender_id = ${userId}`;
 
   await db`DELETE FROM users WHERE id = ${userId}`;
+
+  return c.json({ success: true });
+});
+
+const RP_NAME = "fastminds";
+
+function getRpID(): string {
+  const base = process.env.PUBLIC_URL || "http://localhost:3000";
+  return new URL(base).hostname;
+}
+
+// The browser puts its true origin in clientDataJSON, so accepting any origin
+// whose hostname matches the rpID (e.g. the vite dev server port) is safe.
+function getExpectedOrigin(originHeader: string | undefined, rpID: string): string {
+  if (originHeader) {
+    try {
+      const host = new URL(originHeader).hostname;
+      if (host === rpID || host.endsWith(`.${rpID}`)) {
+        return originHeader;
+      }
+    } catch {}
+  }
+  return new URL(process.env.PUBLIC_URL || "http://localhost:3000").origin;
+}
+
+async function saveChallenge(
+  challenge: string,
+  type: "registration" | "authentication",
+  userId: string | null
+) {
+  await db`DELETE FROM webauthn_challenges WHERE created_at < datetime('now', '-5 minutes')`;
+  const id = generateUUID();
+  await db`
+    INSERT INTO webauthn_challenges (id, challenge, user_id, type)
+    VALUES (${id}, ${challenge}, ${userId}, ${type})
+  `;
+}
+
+async function consumeChallenge(
+  challenge: string,
+  type: "registration" | "authentication",
+  userId?: string
+): Promise<boolean> {
+  const rows = userId
+    ? await db`
+        SELECT id FROM webauthn_challenges
+        WHERE challenge = ${challenge} AND type = ${type} AND user_id = ${userId}
+          AND created_at >= datetime('now', '-5 minutes')
+      `
+    : await db`
+        SELECT id FROM webauthn_challenges
+        WHERE challenge = ${challenge} AND type = ${type} AND user_id IS NULL
+          AND created_at >= datetime('now', '-5 minutes')
+      `;
+  if (rows.length === 0) return false;
+  await db`DELETE FROM webauthn_challenges WHERE id = ${rows[0].id}`;
+  return true;
+}
+
+function challengeFromClientData(clientDataJSON: unknown): string | null {
+  if (typeof clientDataJSON !== "string") return null;
+  try {
+    const data = JSON.parse(Buffer.from(clientDataJSON, "base64url").toString("utf8"));
+    return typeof data.challenge === "string" ? data.challenge : null;
+  } catch {
+    return null;
+  }
+}
+
+auth.post("/passkey/register/options", authMiddleware, async (c) => {
+  const userId = c.get("userId");
+  const [user] = await db`SELECT id, username FROM users WHERE id = ${userId}`;
+  if (!user) {
+    return c.json({ error: "User not found" }, 404);
+  }
+
+  const existing = await db`
+    SELECT id, transports FROM passkey_credentials WHERE user_id = ${userId}
+  `;
+
+  const options = await generateRegistrationOptions({
+    rpName: RP_NAME,
+    rpID: getRpID(),
+    userID: new TextEncoder().encode(user.id),
+    userName: user.username,
+    attestationType: "none",
+    excludeCredentials: existing.map((cred: any) => ({
+      id: cred.id,
+      transports: JSON.parse(cred.transports || "[]"),
+    })),
+    authenticatorSelection: {
+      residentKey: "preferred",
+      userVerification: "preferred",
+    },
+  });
+
+  await saveChallenge(options.challenge, "registration", userId);
+
+  return c.json({ options });
+});
+
+auth.post("/passkey/register/verify", authMiddleware, async (c) => {
+  const userId = c.get("userId");
+  const { response, name } = await c.req.json();
+
+  if (!response) {
+    return c.json({ error: "response is required" }, 400);
+  }
+
+  const challenge = challengeFromClientData(response?.response?.clientDataJSON);
+  if (!challenge || !(await consumeChallenge(challenge, "registration", userId))) {
+    return c.json({ error: "Challenge expired or invalid, please try again" }, 400);
+  }
+
+  const rpID = getRpID();
+  let verification;
+  try {
+    verification = await verifyRegistrationResponse({
+      response,
+      expectedChallenge: challenge,
+      expectedOrigin: getExpectedOrigin(c.req.header("Origin"), rpID),
+      expectedRPID: rpID,
+      requireUserVerification: false,
+    });
+  } catch {
+    return c.json({ error: "Passkey verification failed" }, 400);
+  }
+
+  if (!verification.verified || !verification.registrationInfo) {
+    return c.json({ error: "Passkey verification failed" }, 400);
+  }
+
+  const { credential } = verification.registrationInfo;
+
+  const duplicate = await db`SELECT id FROM passkey_credentials WHERE id = ${credential.id}`;
+  if (duplicate.length > 0) {
+    return c.json({ error: "This passkey is already registered" }, 409);
+  }
+
+  const passkeyName =
+    (typeof name === "string" && name.trim()) ||
+    `Passkey added ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
+
+  await db`
+    INSERT INTO passkey_credentials (id, user_id, public_key, sign_count, transports, name)
+    VALUES (
+      ${credential.id},
+      ${userId},
+      ${Buffer.from(credential.publicKey).toString("base64url")},
+      ${credential.counter},
+      ${JSON.stringify(credential.transports || [])},
+      ${passkeyName}
+    )
+  `;
+
+  return c.json({ passkey: { id: credential.id, name: passkeyName } }, 201);
+});
+
+auth.post("/passkey/login/options", async (c) => {
+  const options = await generateAuthenticationOptions({
+    rpID: getRpID(),
+    userVerification: "preferred",
+  });
+
+  await saveChallenge(options.challenge, "authentication", null);
+
+  return c.json({ options });
+});
+
+auth.post("/passkey/login/verify", async (c) => {
+  const { response } = await c.req.json();
+
+  if (!response || typeof response.id !== "string") {
+    return c.json({ error: "response is required" }, 400);
+  }
+
+  const challenge = challengeFromClientData(response?.response?.clientDataJSON);
+  if (!challenge || !(await consumeChallenge(challenge, "authentication"))) {
+    return c.json({ error: "Challenge expired or invalid, please try again" }, 400);
+  }
+
+  const [cred] = await db`
+    SELECT id, user_id, public_key, sign_count, transports
+    FROM passkey_credentials WHERE id = ${response.id}
+  `;
+  if (!cred) {
+    return c.json({ error: "Passkey not recognized" }, 401);
+  }
+
+  const rpID = getRpID();
+  let verification;
+  try {
+    verification = await verifyAuthenticationResponse({
+      response,
+      expectedChallenge: challenge,
+      expectedOrigin: getExpectedOrigin(c.req.header("Origin"), rpID),
+      expectedRPID: rpID,
+      credential: {
+        id: cred.id,
+        publicKey: new Uint8Array(Buffer.from(cred.public_key, "base64url")),
+        counter: cred.sign_count,
+        transports: JSON.parse(cred.transports || "[]"),
+      },
+      requireUserVerification: false,
+    });
+  } catch {
+    return c.json({ error: "Passkey verification failed" }, 401);
+  }
+
+  if (!verification.verified) {
+    return c.json({ error: "Passkey verification failed" }, 401);
+  }
+
+  await db`
+    UPDATE passkey_credentials
+    SET sign_count = ${verification.authenticationInfo.newCounter}, last_used_at = datetime('now')
+    WHERE id = ${cred.id}
+  `;
+
+  const [user] = await db`
+    SELECT id, username, email, email_verified, is_admin, email_notifications, email_new_message, email_new_post, created_at
+    FROM users WHERE id = ${cred.user_id}
+  `;
+  if (!user) {
+    return c.json({ error: "Passkey not recognized" }, 401);
+  }
+
+  const secret = process.env.JWT_SECRET!;
+  const token = await sign({ sub: user.id, username: user.username }, secret, "HS256");
+
+  return c.json({
+    user: {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      emailVerified: user.email_verified,
+      isAdmin: user.is_admin,
+      emailNewConversation: user.email_notifications,
+      emailNewMessage: user.email_new_message,
+      emailNewPost: user.email_new_post,
+      createdAt: user.created_at,
+    },
+    token,
+  });
+});
+
+auth.get("/passkeys", authMiddleware, async (c) => {
+  const userId = c.get("userId");
+  const passkeys = await db`
+    SELECT id, name, created_at, last_used_at
+    FROM passkey_credentials
+    WHERE user_id = ${userId}
+    ORDER BY created_at ASC
+  `;
+
+  return c.json({
+    passkeys: passkeys.map((p: any) => ({
+      id: p.id,
+      name: p.name,
+      createdAt: p.created_at,
+      lastUsedAt: p.last_used_at,
+    })),
+  });
+});
+
+auth.delete("/passkeys/:id", authMiddleware, async (c) => {
+  const userId = c.get("userId");
+  const id = c.req.param("id");
+
+  const [passkey] = await db`
+    SELECT id FROM passkey_credentials WHERE id = ${id} AND user_id = ${userId}
+  `;
+  if (!passkey) {
+    return c.json({ error: "Passkey not found" }, 404);
+  }
+
+  await db`DELETE FROM passkey_credentials WHERE id = ${id}`;
 
   return c.json({ success: true });
 });

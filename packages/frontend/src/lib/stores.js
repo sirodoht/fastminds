@@ -1,4 +1,5 @@
 import { writable, get } from "svelte/store";
+import { startAuthentication } from "@simplewebauthn/browser";
 import { api } from "./api.js";
 
 export const currentRoute = writable({ path: "/", params: {} });
@@ -21,6 +22,23 @@ export async function login(username, password) {
   const data = await api("/api/auth/login", {
     method: "POST",
     body: JSON.stringify({ username, password }),
+  });
+  token.set(data.token);
+  user.set(data.user);
+  return data;
+}
+
+export async function loginWithPasskey(useBrowserAutofill = false) {
+  const { options } = await api("/api/auth/passkey/login/options", {
+    method: "POST",
+  });
+  const response = await startAuthentication({
+    optionsJSON: options,
+    useBrowserAutofill,
+  });
+  const data = await api("/api/auth/passkey/login/verify", {
+    method: "POST",
+    body: JSON.stringify({ response }),
   });
   token.set(data.token);
   user.set(data.user);

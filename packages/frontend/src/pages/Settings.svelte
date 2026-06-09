@@ -1,4 +1,6 @@
 <script>
+  import { onMount } from "svelte";
+  import { startRegistration, browserSupportsWebAuthn } from "@simplewebauthn/browser";
   import { api } from "../lib/api.js";
   import { logout, user } from "../lib/stores.js";
   import { navigate } from "../router/index.js";
@@ -22,6 +24,65 @@
   let deleteError = $state("");
   let deleteLoading = $state(false);
   let deleteFormEl;
+
+  let passkeys = $state([]);
+  let passkeySupported = $state(false);
+  let passkeyError = $state("");
+  let passkeySuccess = $state("");
+  let passkeyAdding = $state(false);
+
+  onMount(() => {
+    passkeySupported = browserSupportsWebAuthn();
+    loadPasskeys();
+  });
+
+  async function loadPasskeys() {
+    try {
+      const data = await api("/api/auth/passkeys");
+      passkeys = data.passkeys;
+    } catch (err) {
+      passkeyError = err.message;
+    }
+  }
+
+  async function handleAddPasskey() {
+    passkeyError = "";
+    passkeySuccess = "";
+    passkeyAdding = true;
+    try {
+      const { options } = await api("/api/auth/passkey/register/options", {
+        method: "POST",
+      });
+      const response = await startRegistration({ optionsJSON: options });
+      await api("/api/auth/passkey/register/verify", {
+        method: "POST",
+        body: JSON.stringify({ response }),
+      });
+      passkeySuccess = "Passkey added.";
+      await loadPasskeys();
+    } catch (err) {
+      if (err.name === "InvalidStateError") {
+        passkeyError = "This device already has a passkey for your account.";
+      } else if (err.name !== "NotAllowedError") {
+        passkeyError = err.message;
+      }
+    } finally {
+      passkeyAdding = false;
+    }
+  }
+
+  async function handleDeletePasskey(id) {
+    passkeyError = "";
+    passkeySuccess = "";
+    try {
+      await api(`/api/auth/passkeys/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+      passkeys = passkeys.filter((p) => p.id !== id);
+    } catch (err) {
+      passkeyError = err.message;
+    }
+  }
 
   function handlePasswordKeydown(e) {
     if (e.key === "Enter") {
@@ -172,6 +233,48 @@
 
   <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border-color);" />
 
+  <h2 style="margin-bottom: 1rem; font-size: 1.1rem;">Passkeys</h2>
+
+  <p style="font-size: 0.9rem; color: #555; margin-bottom: 1rem;">
+    Passkeys let you log in with your fingerprint, face, or device PIN instead of your password.
+  </p>
+
+  {#if passkeys.length > 0}
+    <ul class="passkey-list">
+      {#each passkeys as passkey (passkey.id)}
+        <li class="passkey-item">
+          <div>
+            <div class="passkey-name">{passkey.name}</div>
+            <div class="passkey-meta">
+              Added {new Date(passkey.createdAt + "Z").toLocaleDateString()}{passkey.lastUsedAt ? ` · Last used ${new Date(passkey.lastUsedAt + "Z").toLocaleDateString()}` : ""}
+            </div>
+          </div>
+          <button type="button" class="btn-secondary" onclick={() => handleDeletePasskey(passkey.id)}>
+            Remove
+          </button>
+        </li>
+      {/each}
+    </ul>
+  {/if}
+
+  {#if passkeyError}
+    <p class="form-error">{passkeyError}</p>
+  {/if}
+
+  {#if passkeySuccess}
+    <p class="form-success">{passkeySuccess}</p>
+  {/if}
+
+  {#if passkeySupported}
+    <button type="button" class="btn-primary" onclick={handleAddPasskey} disabled={passkeyAdding}>
+      {passkeyAdding ? "Waiting for passkey…" : "Add a passkey"}
+    </button>
+  {:else}
+    <p style="font-size: 0.9rem; color: #555;">This browser does not support passkeys.</p>
+  {/if}
+
+  <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border-color);" />
+
   <h2 style="margin-bottom: 1rem; font-size: 1.1rem; color: #dc2626;">Delete account</h2>
 
   <p style="font-size: 0.9rem; color: #444; margin-bottom: 1rem;">This will permanently delete your account. Your posts will remain but be attributed to a deleted user. Your direct messages and feedback will be removed.</p>
@@ -202,5 +305,30 @@
     color: #16a34a;
     font-size: 0.9rem;
     margin-bottom: 0.75rem;
+  }
+
+  .passkey-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1rem;
+  }
+
+  .passkey-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .passkey-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .passkey-meta {
+    font-size: 0.8rem;
+    color: #777;
   }
 </style>
