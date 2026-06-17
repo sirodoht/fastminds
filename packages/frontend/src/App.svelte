@@ -204,7 +204,7 @@
         <aside class="sidebar">
           <div class="sidebar-card">
             <h3>fastminds</h3>
-            <p style="font-size: 0.9rem; color: #555; margin-top: 0.25rem;">where curious people have deep one-to-one conversations</p>
+            <p style="font-size: 0.9rem; color: #555; margin-top: 0.25rem;">Where curious people have deep one-to-one conversations</p>
             <hr />
             <p>
                 <strong>How it works</strong>

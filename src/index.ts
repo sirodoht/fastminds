@@ -79,7 +79,7 @@ app.get("*", async (c) => {
   const tags: Record<string, string> = {
     "og:url": url,
     "og:type": "website",
-    "og:description": "where curious people have deep one-to-one conversations",
+    "og:description": "Where curious people have deep one-to-one conversations",
   };
 
   // Dynamic meta tags for specific routes
@@ -92,7 +92,7 @@ app.get("*", async (c) => {
       if (post) {
         const excerpt = post.body ? post.body.slice(0, 200).replace(/\n/g, " ") : "";
         tags["og:title"] = post.title;
-        tags["og:description"] = excerpt || "where curious people have deep one-to-one conversations";
+        tags["og:description"] = excerpt || "Where curious people have deep one-to-one conversations";
       }
     }
   } else if (path.startsWith("/u/")) {
@@ -103,7 +103,7 @@ app.get("*", async (c) => {
       `;
       if (user) {
         tags["og:title"] = `${user.username}`;
-        tags["og:description"] = `where curious people have deep one-to-one conversations`;
+        tags["og:description"] = `Where curious people have deep one-to-one conversations`;
       }
     }
   } else if (path.startsWith("/conversations/")) {
@@ -117,7 +117,7 @@ app.get("*", async (c) => {
       `;
       if (conv) {
         tags["og:title"] = `Conversation`;
-        tags["og:description"] = conv.title ? `Conversation about: ${conv.title}` : "where curious people have deep one-to-one conversations";
+        tags["og:description"] = conv.title ? `Conversation about: ${conv.title}` : "Where curious people have deep one-to-one conversations";
       }
     }
   }
