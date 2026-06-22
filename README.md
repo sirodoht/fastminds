@@ -32,19 +32,31 @@ Required variables in `.env`:
 | Variable | Purpose |
 |----------|---------|
 | `JWT_SECRET` | Signing key for auth tokens |
-| `DATABASE_URL` | SQLite path, e.g. `sqlite://fastminds.db` |
-| `PUBLIC_URL` | Public-facing URL, e.g. `http://localhost:3000` |
-| `APP_URL` | Same as above; used in email links |
-| `STRIPE_SECRET_KEY` | Stripe secret key for $1 payment verification |
-| `POSTMARK_SERVER_TOKEN` | Postmark API key for transactional emails |
-| `ADMIN_EMAIL` | Address for admin alerts (new posts, etc.) |
+| `STRIPE_SECRET_KEY` | Stripe secret key for payment verification |
 
-Optional:
+Optional variables:
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
+| `ADMIN_EMAIL` | — | Address for admin alerts, including new posts and moderation events |
+| `APP_URL` | `PUBLIC_URL` or request origin, depending on route | App URL used in email links |
+| `DATABASE_URL` | `fastminds.db` | SQLite path; use `sqlite://fastminds.db` or a plain path |
+| `EMAIL_WEBHOOK_URL` | — | Webhook endpoint for sending emails instead of Postmark |
+| `FROM_EMAIL` | `noreply@fastminds.xyz` | Fallback sender address when using `EMAIL_WEBHOOK_URL` |
+| `OPENAI_API_KEY` | — | Enables AI-generated post insights |
+| `OPENAI_INSIGHTS_MODEL` | `gpt-5.5` | OpenAI model for post insights |
+| `OPENAI_INSIGHTS_REASONING_EFFORT` | `xhigh` | Reasoning effort for post insights |
 | `PORT` | `3000` | HTTP server port |
-| `STRIPE_WEBHOOK_SECRET` | — | Stripe webhook signature verification |
+| `POSTMARK_API_KEY` | — | Postmark API key for transactional emails |
+| `POSTMARK_FROM` | — | Sender address for Postmark emails |
+| `PUBLIC_URL` | `http://localhost:3000` or `https://fastminds.xyz`, depending on route | Public-facing URL for links and social metadata |
+
+Test/runtime variables:
+
+| Variable | Purpose |
+|----------|---------|
+| `CI` | Disables real admin email sending when set to `true` |
+| `NODE_ENV` | Tests set this to `test` to disable real admin email sending |
 
 ## Architecture
 

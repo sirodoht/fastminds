@@ -12,6 +12,13 @@ let post = $state(null);
 let updates = $state([]);
 let loading = $state(true);
 let error = $state("");
+let aiInsight = $state("");
+let aiInsightLoading = $state(false);
+let aiInsightError = $state("");
+let aiInsightRefreshing = $state(false);
+let aiInsightEditing = $state(false);
+let aiInsightDraft = $state("");
+let aiInsightSaving = $state(false);
 
 let showComposer = $state(false);
 let firstMessage = $state("");
@@ -60,6 +67,77 @@ async function fetchUpdates() {
   }
 }
 
+async function fetchAiInsight() {
+  aiInsight = "";
+  aiInsightError = "";
+  aiInsightLoading = true;
+
+  try {
+    const data = await api(`/api/posts/${params.id}/insight`);
+    aiInsight = data.insight;
+  } catch {
+    aiInsightError = "AI insight unavailable.";
+  } finally {
+    aiInsightLoading = false;
+  }
+}
+
+async function refreshAiInsight() {
+  if (!post || aiInsightRefreshing) return;
+
+  aiInsightError = "";
+  aiInsightRefreshing = true;
+
+  try {
+    const data = await api(`/api/posts/${params.id}/insight/refresh`, {
+      method: "POST",
+    });
+    aiInsight = data.insight;
+  } catch (err) {
+    aiInsightError = err.message || "AI insight unavailable.";
+  } finally {
+    aiInsightRefreshing = false;
+  }
+}
+
+function startEditingAiInsight() {
+  aiInsightDraft = aiInsight;
+  aiInsightError = "";
+  aiInsightEditing = true;
+}
+
+function cancelEditingAiInsight() {
+  aiInsightDraft = "";
+  aiInsightError = "";
+  aiInsightEditing = false;
+}
+
+async function saveAiInsight() {
+  if (!post || aiInsightSaving) return;
+
+  if (!aiInsightDraft.trim()) {
+    aiInsightError = "Insight is required.";
+    return;
+  }
+
+  aiInsightError = "";
+  aiInsightSaving = true;
+
+  try {
+    const data = await api(`/api/posts/${params.id}/insight`, {
+      method: "PUT",
+      body: JSON.stringify({ insight: aiInsightDraft.trim() }),
+    });
+    aiInsight = data.insight;
+    aiInsightEditing = false;
+    aiInsightDraft = "";
+  } catch (err) {
+    aiInsightError = err.message || "Failed to save insight.";
+  } finally {
+    aiInsightSaving = false;
+  }
+}
+
 async function archivePost() {
   if (!post || archiveLoading) return;
   if (!confirm("Are you sure you want to archive this post? It will be hidden from the feed and no longer accept new conversations.")) return;
@@ -91,6 +169,9 @@ onMount(async () => {
   await fetchPost();
   await fetchUpdates();
   loading = false;
+  if (post) {
+    fetchAiInsight();
+  }
 });
 
 async function startConversation(e) {
@@ -173,6 +254,73 @@ let canStartConversation = $derived($user && post && !post.archived_at && !isOwn
       <div class="post-body">{post.body}</div>
     {/if}
 
+    {#if aiInsightLoading || aiInsight || aiInsightError}
+      <section class="ai-insight" aria-live="polite">
+        <div class="ai-insight-header">
+          <div class="ai-insight-label">Moderators' comments</div>
+          {#if $user?.isAdmin}
+            <div class="ai-insight-admin-actions">
+              {#if aiInsight && !aiInsightEditing}
+                <button
+                  class="ai-insight-action"
+                  type="button"
+                  onclick={startEditingAiInsight}
+                  disabled={aiInsightRefreshing || aiInsightLoading}
+                >
+                  Edit
+                </button>
+              {/if}
+              <button
+                class="ai-insight-action"
+                type="button"
+                onclick={refreshAiInsight}
+                disabled={aiInsightRefreshing || aiInsightLoading || aiInsightEditing}
+              >
+                {aiInsightRefreshing ? "Refreshing…" : "Refresh"}
+              </button>
+            </div>
+          {/if}
+        </div>
+        {#if aiInsightLoading}
+          <div class="ai-insight-body muted">Generating insight…</div>
+        {:else if aiInsightEditing}
+          <div class="ai-insight-editor">
+            <textarea
+              bind:value={aiInsightDraft}
+              rows="5"
+              maxlength="1000"
+              aria-label="Edit ways in"
+            ></textarea>
+            {#if aiInsightError}
+              <div class="ai-insight-body muted">{aiInsightError}</div>
+            {/if}
+            <div class="ai-insight-editor-actions">
+              <button
+                class="btn-secondary"
+                type="button"
+                onclick={cancelEditingAiInsight}
+                disabled={aiInsightSaving}
+              >
+                Cancel
+              </button>
+              <button
+                class="btn-primary"
+                type="button"
+                onclick={saveAiInsight}
+                disabled={aiInsightSaving}
+              >
+                {aiInsightSaving ? "Saving…" : "Save"}
+              </button>
+            </div>
+          </div>
+        {:else if aiInsight}
+          <div class="ai-insight-body">{aiInsight}</div>
+        {:else if aiInsightError}
+          <div class="ai-insight-body muted">{aiInsightError}</div>
+        {/if}
+      </section>
+    {/if}
+
     {#if updates.length > 0}
       <div class="post-updates">
         {#each updates as update (update.id)}
@@ -236,6 +384,77 @@ let canStartConversation = $derived($user && post && !post.archived_at && !isOwn
 <ReportModal bind:open={reportOpen} targetType="post" targetId={params.id} />
 
 <style>
+  .ai-insight {
+    padding: 14px 16px 16px;
+    border-top: 1px solid var(--border);
+    background: #fbfbfb;
+  }
+  .ai-insight-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 5px;
+  }
+  .ai-insight-label {
+    color: var(--text-meta);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .ai-insight-admin-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .ai-insight-action {
+    padding: 2px 8px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: var(--white);
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .ai-insight-action:hover:not(:disabled) {
+    border-color: #aaa;
+    background: var(--bg);
+  }
+  .ai-insight-action:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  .ai-insight-body {
+    color: var(--text);
+    font-size: 0.88rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+  }
+  .ai-insight-body.muted {
+    color: var(--text-muted);
+  }
+  .ai-insight-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .ai-insight-editor textarea {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: var(--white);
+    color: var(--text);
+    font: inherit;
+    resize: vertical;
+  }
+  .ai-insight-editor-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
   .post-updates {
     margin-top: 16px;
     padding: 16px;

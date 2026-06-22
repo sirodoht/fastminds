@@ -1,10 +1,31 @@
 import { Hono } from "hono";
 import { db, generateUUID } from "../db";
 import { authMiddleware, optionalAuthMiddleware, verifiedEmailMiddleware, type AuthEnv } from "../middleware/auth";
+import { adminMiddleware } from "../middleware/admin";
 import { sendEmail, sendAdminEmail, logAdminEvent } from "../lib/email";
 import { validateUUID } from "../lib/validation";
+import { generatePostInsight } from "../lib/openai";
 
 const posts = new Hono<AuthEnv>();
+
+async function generateAndSavePostInsight(post: { id: string; title: string; body?: string | null }) {
+  const generated = await generatePostInsight({
+    title: post.title,
+    body: post.body || "",
+  });
+
+  const [saved] = await db`
+    INSERT INTO post_ai_insights (post_id, model, insight)
+    VALUES (${post.id}, ${generated.model}, ${generated.insight})
+    ON CONFLICT(post_id) DO UPDATE SET
+      model = excluded.model,
+      insight = excluded.insight,
+      created_at = datetime('now')
+    RETURNING insight, model, created_at
+  `;
+
+  return saved;
+}
 
 posts.get("/", optionalAuthMiddleware, async (c) => {
   const page = Math.max(1, parseInt(c.req.query("page") || "1", 10));
@@ -117,6 +138,133 @@ posts.get("/:id", optionalAuthMiddleware, async (c) => {
       conversationId,
       isBookmarked,
     },
+  });
+});
+
+posts.get("/:id/insight", async (c) => {
+  const id = c.req.param("id");
+
+  const validationError = validateUUID(id);
+  if (validationError) {
+    return c.json({ error: "Post not found" }, 404);
+  }
+
+  const [post] = await db`
+    SELECT id, title, body
+    FROM posts
+    WHERE id = ${id}
+  `;
+
+  if (!post) {
+    return c.json({ error: "Post not found" }, 404);
+  }
+
+  const [cached] = await db`
+    SELECT insight, model, created_at
+    FROM post_ai_insights
+    WHERE post_id = ${id}
+  `;
+
+  if (cached) {
+    return c.json({
+      insight: cached.insight,
+      model: cached.model,
+      createdAt: cached.created_at,
+      cached: true,
+    });
+  }
+
+  try {
+    const saved = await generateAndSavePostInsight(post);
+
+    return c.json({
+      insight: saved.insight,
+      model: saved.model,
+      createdAt: saved.created_at,
+      cached: false,
+    });
+  } catch (err) {
+    console.error("Failed to generate post insight", err);
+    return c.json({ error: "AI insight is unavailable" }, 503);
+  }
+});
+
+posts.post("/:id/insight/refresh", adminMiddleware, async (c) => {
+  const id = c.req.param("id");
+
+  const validationError = validateUUID(id);
+  if (validationError) {
+    return c.json({ error: "Post not found" }, 404);
+  }
+
+  const [post] = await db`
+    SELECT id, title, body
+    FROM posts
+    WHERE id = ${id}
+  `;
+
+  if (!post) {
+    return c.json({ error: "Post not found" }, 404);
+  }
+
+  try {
+    const saved = await generateAndSavePostInsight(post);
+
+    return c.json({
+      insight: saved.insight,
+      model: saved.model,
+      createdAt: saved.created_at,
+      cached: false,
+    });
+  } catch (err) {
+    console.error("Failed to refresh post insight", err);
+    return c.json({ error: "AI insight is unavailable" }, 503);
+  }
+});
+
+posts.put("/:id/insight", adminMiddleware, async (c) => {
+  const id = c.req.param("id");
+  const { insight } = await c.req.json();
+
+  const validationError = validateUUID(id);
+  if (validationError) {
+    return c.json({ error: "Post not found" }, 404);
+  }
+
+  if (!insight || !insight.trim()) {
+    return c.json({ error: "Insight is required" }, 400);
+  }
+
+  const trimmedInsight = insight.trim();
+  if (trimmedInsight.length > 1000) {
+    return c.json({ error: "Insight must be 1000 characters or fewer" }, 400);
+  }
+
+  const [post] = await db`
+    SELECT id
+    FROM posts
+    WHERE id = ${id}
+  `;
+
+  if (!post) {
+    return c.json({ error: "Post not found" }, 404);
+  }
+
+  const model = process.env.OPENAI_INSIGHTS_MODEL || "gpt-5.5";
+  const [saved] = await db`
+    INSERT INTO post_ai_insights (post_id, model, insight)
+    VALUES (${id}, ${model}, ${trimmedInsight})
+    ON CONFLICT(post_id) DO UPDATE SET
+      insight = excluded.insight,
+      created_at = datetime('now')
+    RETURNING insight, model, created_at
+  `;
+
+  return c.json({
+    insight: saved.insight,
+    model: saved.model,
+    createdAt: saved.created_at,
+    cached: false,
   });
 });
 
