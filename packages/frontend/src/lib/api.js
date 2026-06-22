@@ -4,15 +4,18 @@ export async function api(url, options = {}) {
   if (t) headers["Authorization"] = `Bearer ${t}`;
 
   const res = await fetch(url, { ...options, headers });
+  const shouldExpireAuth = options.expireAuthOnUnauthorized !== false;
 
-  if (res.status === 401) {
+  if (res.status === 401 && shouldExpireAuth) {
     localStorage.removeItem("token");
     window.dispatchEvent(new Event("auth:expired"));
   }
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || `Request failed (${res.status})`);
+    const err = new Error(body.error || `Request failed (${res.status})`);
+    err.status = res.status;
+    throw err;
   }
 
   return res.json();

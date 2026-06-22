@@ -38,7 +38,18 @@ async function sendViaPostmark({ to, subject, text, html }: SendEmailOptions) {
   return true;
 }
 
+export function shouldSkipEmailRecipient(email: string): boolean {
+  const normalized = email.trim().toLowerCase();
+  if (!normalized) return true;
+  return normalized.endsWith(".local") || normalized.endsWith("@fastminds.local");
+}
+
 export async function sendEmail(opts: SendEmailOptions) {
+  if (shouldSkipEmailRecipient(opts.to)) {
+    console.log(`Skipping email to non-deliverable recipient: ${opts.to}`);
+    return;
+  }
+
   const base = process.env.PUBLIC_URL || "http://localhost:3000";
   const footerText = `\n\n---\nManage your email notifications: ${base}/notifications`;
   const footerHtml = `<hr style="border:none;border-top:1px solid #ddd;margin:1.5rem 0 0.5rem;"><p style="font-size:0.85rem;color:#666;"><a href="${base}/notifications">Manage your email notifications</a></p>`;

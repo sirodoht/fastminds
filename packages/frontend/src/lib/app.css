@@ -442,7 +442,15 @@ a:visited {
   font-size: .9rem;
   line-height: 1.6;
   color: var(--text);
+}
+
+.post-detail .post-body p {
+  margin: 0;
   white-space: pre-wrap;
+}
+
+.post-detail .post-body p + p {
+  margin-top: 20px;
 }
 
 /* ──────── Comments ──────── */

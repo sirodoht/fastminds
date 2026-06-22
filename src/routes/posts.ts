@@ -8,6 +8,43 @@ import { generatePostInsight } from "../lib/openai";
 
 const posts = new Hono<AuthEnv>();
 
+function cleanText(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function cleanComposerAnswer(value: unknown) {
+  const text = cleanText(value);
+  if (text === "I'm asking this because ...") return "";
+  if (text === "It would be surprising to hear ...") return "";
+  return text;
+}
+
+function hasStructuredComposerPayload(payload: any) {
+  return (
+    "question" in payload ||
+    "whyAsking" in payload ||
+    "responseHopingFor" in payload ||
+    "goodConversation" in payload
+  );
+}
+
+function validateStructuredComposerPayload(payload: any) {
+  const question = cleanText(payload.question);
+  const whyAsking = cleanComposerAnswer(payload.whyAsking);
+  const responseHopingFor = cleanComposerAnswer(payload.responseHopingFor);
+  const goodConversation = cleanComposerAnswer(payload.goodConversation);
+
+  if (!question) return { error: "Question is required" };
+  if (question.length > 112) return { error: "Question must be 112 characters or fewer" };
+
+  const answers = [whyAsking, responseHopingFor, goodConversation].filter(Boolean);
+
+  return {
+    title: question,
+    body: answers.join("\n\n"),
+  };
+}
+
 async function generateAndSavePostInsight(post: { id: string; title: string; body?: string | null }) {
   const generated = await generatePostInsight({
     title: post.title,
@@ -270,7 +307,18 @@ posts.put("/:id/insight", adminMiddleware, async (c) => {
 
 posts.post("/", authMiddleware, verifiedEmailMiddleware, async (c) => {
   const userId = c.get("userId");
-  const { title, body } = await c.req.json();
+  const payload = await c.req.json();
+  let title = cleanText(payload.title);
+  let body = cleanText(payload.body);
+
+  if (hasStructuredComposerPayload(payload)) {
+    const structured = validateStructuredComposerPayload(payload);
+    if ("error" in structured) {
+      return c.json({ error: structured.error }, 400);
+    }
+    title = structured.title;
+    body = structured.body;
+  }
 
   if (!title || !title.trim()) {
     return c.json({ error: "Title is required" }, 400);
@@ -283,7 +331,7 @@ posts.post("/", authMiddleware, verifiedEmailMiddleware, async (c) => {
   const postId = generateUUID();
   const [post] = await db`
     INSERT INTO posts (id, title, body, author_id)
-    VALUES (${postId}, ${title.trim()}, ${body || ""}, ${userId})
+    VALUES (${postId}, ${title.trim()}, ${body}, ${userId})
     RETURNING id, title, body, created_at
   `;
 

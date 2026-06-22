@@ -205,6 +205,7 @@ async function startConversation(e) {
 let isOwnPost = $derived($user && post && post.isMine);
 let hasStartedConversation = $derived(post?.hasStartedConversation ?? false);
 let canStartConversation = $derived($user && post && !post.archived_at && !isOwnPost && !hasStartedConversation && $user.emailVerified);
+let postBodyParagraphs = $derived((post?.body || "").split(/\n{2,}/).filter(Boolean));
 </script>
 
 {#if loading}
@@ -251,7 +252,11 @@ let canStartConversation = $derived($user && post && !post.archived_at && !isOwn
     </article>
 
     {#if post.body}
-      <div class="post-body">{post.body}</div>
+      <div class="post-body">
+        {#each postBodyParagraphs as paragraph}
+          <p>{paragraph}</p>
+        {/each}
+      </div>
     {/if}
 
     {#if aiInsightLoading || aiInsight || aiInsightError}

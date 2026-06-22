@@ -3,13 +3,16 @@ import { startAuthentication } from "@simplewebauthn/browser";
 import { api } from "./api.js";
 
 export const currentRoute = writable({ path: "/", params: {} });
-export const user = writable(null);
 export const token = writable(localStorage.getItem("token") || null);
+export const user = writable(loadCachedUser());
 export const notificationUnreadCount = writable(0);
 
 token.subscribe((value) => {
   if (value) localStorage.setItem("token", value);
-  else localStorage.removeItem("token");
+  else {
+    localStorage.removeItem("token");
+    localStorage.removeItem("currentUser");
+  }
 });
 
 window.addEventListener("auth:expired", () => {
@@ -18,13 +21,29 @@ window.addEventListener("auth:expired", () => {
   notificationUnreadCount.set(0);
 });
 
+function loadCachedUser() {
+  if (!localStorage.getItem("token")) return null;
+  try {
+    return JSON.parse(localStorage.getItem("currentUser") || "null");
+  } catch {
+    localStorage.removeItem("currentUser");
+    return null;
+  }
+}
+
+function setCurrentUser(value) {
+  user.set(value);
+  if (value) localStorage.setItem("currentUser", JSON.stringify(value));
+  else localStorage.removeItem("currentUser");
+}
+
 export async function login(username, password) {
   const data = await api("/api/auth/login", {
     method: "POST",
     body: JSON.stringify({ username, password }),
   });
   token.set(data.token);
-  user.set(data.user);
+  setCurrentUser(data.user);
   return data;
 }
 
@@ -41,7 +60,7 @@ export async function loginWithPasskey(useBrowserAutofill = false) {
     body: JSON.stringify({ response }),
   });
   token.set(data.token);
-  user.set(data.user);
+  setCurrentUser(data.user);
   return data;
 }
 
@@ -51,7 +70,7 @@ export async function register(sessionId) {
     body: JSON.stringify({ sessionId }),
   });
   token.set(data.token);
-  user.set(data.user);
+  setCurrentUser(data.user);
   return data;
 }
 
@@ -70,7 +89,7 @@ export async function resendVerification() {
 
 export function logout() {
   token.set(null);
-  user.set(null);
+  setCurrentUser(null);
   notificationUnreadCount.set(0);
 }
 
@@ -78,11 +97,13 @@ export async function restoreSession() {
   const t = get(token);
   if (!t) return;
   try {
-    const data = await api("/api/auth/me");
-    user.set(data.user);
-  } catch {
-    token.set(null);
-    user.set(null);
+    const data = await api("/api/auth/me", { expireAuthOnUnauthorized: false });
+    setCurrentUser(data.user);
+  } catch (err) {
+    if (err.status === 401 || err.status === 404) {
+      token.set(null);
+      setCurrentUser(null);
+    }
   }
 }
 
@@ -92,7 +113,18 @@ export async function refreshNotificationUnreadCount() {
     return 0;
   }
 
-  const data = await api("/api/notifications/unread-count");
-  notificationUnreadCount.set(data.unreadCount);
-  return data.unreadCount;
+  try {
+    const data = await api("/api/notifications/unread-count", {
+      expireAuthOnUnauthorized: false,
+    });
+    notificationUnreadCount.set(data.unreadCount);
+    return data.unreadCount;
+  } catch (err) {
+    if (err.status === 401 || err.status === 404) {
+      token.set(null);
+      setCurrentUser(null);
+      notificationUnreadCount.set(0);
+    }
+    return get(notificationUnreadCount);
+  }
 }
