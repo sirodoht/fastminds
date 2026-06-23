@@ -287,7 +287,7 @@ let postBodyParagraphs = $derived((post?.body || "").split(/\n{2,}/).filter(Bool
           {/if}
         </div>
         {#if aiInsightLoading}
-          <div class="ai-insight-body muted">Generating insight…</div>
+          <div class="ai-insight-body muted">Loading...</div>
         {:else if aiInsightEditing}
           <div class="ai-insight-editor">
             <textarea
