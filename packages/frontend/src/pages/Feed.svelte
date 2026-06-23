@@ -42,7 +42,9 @@
     </div>
   </div>
 {:else}
-  <p class="feed-note">Questions here are invitations to private conversations, not public debate.</p>
+  <div class="feed-note">
+    Questions here are invitations to private conversations, not public debate.
+  </div>
 
   {#each posts as post (post.id)}
     <article class="post">
@@ -80,8 +82,12 @@
 
 <style>
   .feed-note {
-    margin: 0 0 10px;
+    margin: 0 0 12px;
+    padding: 9px 10px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
     color: var(--text-muted);
-    font-size: 0.9rem;
+    font-size: 0.86rem;
+    line-height: 1.45;
   }
 </style>
